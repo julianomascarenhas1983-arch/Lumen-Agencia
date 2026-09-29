@@ -1,0 +1,229 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg: #070A17;
+    --bg2: #0C1226;
+    --ink: #F3F1EA;
+    --mut: #98A1BC;
+    --line: rgba(243, 241, 234, 0.14);
+    --gold: #F6C453;
+    --c: #19D3F3;
+    --m: #FF2E93;
+    --y: #FFD400;
+    --r: #FF3B30;
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--ink);
+    font-family: 'Manrope', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6, .font-heading {
+    font-family: 'Syne', sans-serif;
+    letter-spacing: -0.02em;
+  }
+
+  /* Accessible visible keyboard focus outline in brand gold */
+  *:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+  }
+}
+
+/* Print out-of-registration convergence animation */
+@keyframes printConvergenceCyan {
+  0% {
+    transform: translate(-14px, -8px);
+    opacity: 0.85;
+  }
+  60% {
+    transform: translate(-4px, -2px);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(var(--mouse-cx, -2px), var(--mouse-cy, -1px));
+    opacity: 0.85;
+  }
+}
+
+@keyframes printConvergenceMagenta {
+  0% {
+    transform: translate(14px, 8px);
+    opacity: 0.85;
+  }
+  60% {
+    transform: translate(4px, 2px);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(var(--mouse-mx, 2px), var(--mouse-my, 1px));
+    opacity: 0.85;
+  }
+}
+
+.animate-converge-cyan {
+  animation: printConvergenceCyan 1.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-converge-magenta {
+  animation: printConvergenceMagenta 1.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-converge-cyan,
+  .animate-converge-magenta {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #070A17;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(243, 241, 234, 0.2);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(246, 196, 83, 0.4);
+}
+
+/* ==========================================================
+   AMBIENTAÇÃO TECH & CYBER HUD DESIGN SYSTEM
+   ========================================================== */
+
+/* Cyber Dot Matrix Background */
+.bg-cyber-dots {
+  background-image: radial-gradient(rgba(243, 241, 234, 0.12) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* Cyber Linear Grid */
+.bg-cyber-grid {
+  background-image: 
+    linear-gradient(to right, rgba(25, 211, 243, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(25, 211, 243, 0.05) 1px, transparent 1px);
+  background-size: 56px 56px;
+}
+
+/* Isometric Tech Circuit Grid */
+.bg-tech-circuit {
+  background-image: 
+    radial-gradient(circle at 50% 50%, rgba(246, 196, 83, 0.08) 0%, transparent 60%),
+    linear-gradient(0deg, rgba(243, 241, 234, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(243, 241, 234, 0.03) 1px, transparent 1px);
+  background-size: 100% 100%, 32px 32px, 32px 32px;
+}
+
+/* Radar Scanline Animation */
+@keyframes techScanline {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.6;
+  }
+  80% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(100vh);
+    opacity: 0;
+  }
+}
+
+.animate-scanline {
+  animation: techScanline 8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* Glowing Neon Pulse */
+@keyframes neonPulseCyan {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(25, 211, 243, 0.2), inset 0 0 15px rgba(25, 211, 243, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(25, 211, 243, 0.4), inset 0 0 20px rgba(25, 211, 243, 0.2);
+  }
+}
+
+.neon-glow-cyan {
+  animation: neonPulseCyan 3s ease-in-out infinite;
+}
+
+/* HUD Corner Brackets (for high-tech cards) */
+.hud-corner {
+  position: relative;
+}
+.hud-corner::before,
+.hud-corner::after {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  pointer-events: none;
+  transition: all 0.2s ease-in-out;
+}
+.hud-corner::before {
+  top: -1px;
+  left: -1px;
+  border-top: 2px solid var(--c);
+  border-left: 2px solid var(--c);
+}
+.hud-corner::after {
+  bottom: -1px;
+  right: -1px;
+  border-bottom: 2px solid var(--gold);
+  border-right: 2px solid var(--gold);
+}
+.hud-corner:hover::before {
+  width: 14px;
+  height: 14px;
+  border-color: #F6C453;
+}
+.hud-corner:hover::after {
+  width: 14px;
+  height: 14px;
+  border-color: #19D3F3;
+}
+
+/* Animated Glowing Border Shimmer */
+@keyframes borderBeamRotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.border-beam-wrapper {
+  position: relative;
+  overflow: hidden;
+}
+
+.border-beam-wrapper::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: conic-gradient(
+    transparent,
+    rgba(25, 211, 243, 0.35) 45deg,
+    rgba(246, 196, 83, 0.5) 60deg,
+    rgba(255, 46, 147, 0.35) 75deg,
+    transparent 90deg
+  );
+  animation: borderBeamRotate 6s linear infinite;
+  pointer-events: none;
+}
+

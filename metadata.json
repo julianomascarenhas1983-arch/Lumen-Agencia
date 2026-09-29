@@ -1,0 +1,6 @@
+{
+  "name": "Lumen | Agência Virtual de Marketing & IA",
+  "description": "Plataforma da Lumen - Agência virtual de marketing estratégico, marketing digital, publicidade e propaganda e comunicação com inteligência artificial e curadoria de especialistas.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
