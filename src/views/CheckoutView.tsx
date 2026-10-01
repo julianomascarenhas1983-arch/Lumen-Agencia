@@ -17,7 +17,16 @@ import {
 } from 'lucide-react';
 
 export const CheckoutView: React.FC = () => {
-  const { products, selectedProductSlug, selectedTier, createOrder, navigate } = useLumen();
+  const {
+    products,
+    selectedProductSlug,
+    selectedTier,
+    createOrder,
+    navigate,
+    currentUser,
+    isAuthenticated,
+    setRedirectAfterLogin,
+  } = useLumen();
 
   const product =
     products.find((p) => p.slug === selectedProductSlug) || products[0];
@@ -25,12 +34,25 @@ export const CheckoutView: React.FC = () => {
 
   const [paymentMethod, setPaymentMethod] = useState<'pix' | 'credit_card'>('pix');
   const [customer, setCustomer] = useState({
-    name: 'Camila Vasconcelos',
-    email: 'camila.v@aurorasaude.com.br',
-    phone: '(11) 98765-4321',
-    document: '34.892.102/0001-44',
+    name: currentUser?.name || '',
+    email: currentUser?.email || '',
+    phone: currentUser?.phone || '',
+    document: currentUser?.document || '',
     acceptedTerms: true,
   });
+
+  // Sync customer data if currentUser updates
+  React.useEffect(() => {
+    if (currentUser) {
+      setCustomer({
+        name: currentUser.name,
+        email: currentUser.email,
+        phone: currentUser.phone,
+        document: currentUser.document,
+        acceptedTerms: true,
+      });
+    }
+  }, [currentUser]);
 
   const [cardData, setCardData] = useState({
     number: '•••• •••• •••• 4242',
@@ -55,6 +77,15 @@ export const CheckoutView: React.FC = () => {
 
   const handleProcessPayment = (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!isAuthenticated) {
+      setErrorMessage(
+        'Você precisa estar logado para contratar. Por favor, clique em "Já Tenho Conta" ou "Cadastrar Empresa" acima.'
+      );
+      setRedirectAfterLogin('checkout');
+      return;
+    }
+
     if (!customer.name || !customer.email || !customer.phone || !customer.document) {
       setErrorMessage('Preencha todos os dados cadastrais.');
       return;
@@ -114,6 +145,51 @@ export const CheckoutView: React.FC = () => {
             Finalize a contratação e inicie o briefing.
           </h1>
         </div>
+
+        {/* AUTHENTICATION GATEWAY BANNER IF NOT LOGGED IN */}
+        {!isAuthenticated && (
+          <div className="mb-8 p-6 rounded-2xl bg-gradient-to-r from-[#0C1226] via-[#161f3d] to-[#0C1226] border border-[#19D3F3]/40 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-6">
+            <div className="flex items-start gap-4">
+              <div className="p-3 rounded-2xl bg-[#19D3F3]/15 text-[#19D3F3] shrink-0 border border-[#19D3F3]/30">
+                <Lock className="w-6 h-6" />
+              </div>
+              <div>
+                <span className="text-[10px] font-mono uppercase text-[#19D3F3] tracking-widest font-bold block mb-1">
+                  ETAPA OBRIGATÓRIA // CADASTRO E IDENTIFICAÇÃO SEGURA
+                </span>
+                <h3 className="font-heading text-lg font-bold text-[#F3F1EA]">
+                  Você precisa estar logado para contratar
+                </h3>
+                <p className="text-xs text-[#98A1BC] max-w-xl mt-1 leading-relaxed">
+                  Para garantir o sigilo dos seus briefings, notas fiscais, contratos e entregáveis na intranet da sua empresa, faça login ou cadastre sua conta antes de efetuar o pagamento.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 shrink-0 w-full sm:w-auto">
+              <button
+                type="button"
+                onClick={() => {
+                  setRedirectAfterLogin('checkout');
+                  navigate('login');
+                }}
+                className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-bold text-[#F3F1EA] border border-white/20 transition-all"
+              >
+                Já Tenho Conta
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setRedirectAfterLogin('checkout');
+                  navigate('cadastro');
+                }}
+                className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl bg-[#19D3F3] hover:bg-[#15b7d3] text-xs font-bold text-[#070A17] shadow-lg transition-all"
+              >
+                Cadastrar Empresa
+              </button>
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
           

@@ -64,6 +64,35 @@ export interface AdjustmentRequest {
   status: 'pending' | 'resolved';
 }
 
+export interface InteractionMessage {
+  id: string;
+  senderRole: 'client' | 'admin' | 'curator';
+  senderName: string;
+  senderAvatar?: string;
+  text: string;
+  timestamp: string;
+  attachments?: { name: string; url?: string; size?: string }[];
+}
+
+export interface ClientProfile {
+  id: string;
+  name: string;
+  email: string;
+  password?: string;
+  phone: string;
+  document: string;
+  companyName: string;
+  segment: string;
+  city?: string;
+  website?: string;
+  instagram?: string;
+  avatarUrl?: string;
+  joinedAt: string;
+  role?: 'client' | 'admin' | 'curator';
+  notesFromTeam?: string; // Private internal notes for agency users
+  accountManager?: string; // Assigned Lumen manager
+}
+
 export interface Order {
   id: string;
   createdAt: string;
@@ -82,6 +111,9 @@ export interface Order {
   revisionRoundsTotal: number;
   revisionRoundsUsed: number;
   adjustments: AdjustmentRequest[];
+  interactions?: InteractionMessage[];
+  receiptUrl?: string;
+  contractNumber?: string;
 }
 
 export interface DiagnosticoInput {

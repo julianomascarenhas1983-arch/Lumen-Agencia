@@ -1,9 +1,23 @@
 import React, { useState } from 'react';
 import { useLumen, AppView } from '../context/LumenContext';
-import { Sparkles, Shield, User, SlidersHorizontal, Menu, X, ArrowUpRight, Instagram, Linkedin, MessageCircle } from 'lucide-react';
+import {
+  Sparkles,
+  Shield,
+  User,
+  SlidersHorizontal,
+  Menu,
+  X,
+  ArrowUpRight,
+  Instagram,
+  Linkedin,
+  MessageCircle,
+  LayoutDashboard,
+  Lock,
+  LogIn,
+} from 'lucide-react';
 
 export const Navbar: React.FC = () => {
-  const { currentView, navigate, orders } = useLumen();
+  const { currentView, navigate, orders, isAuthenticated, currentUser } = useLumen();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const activeOrdersCount = orders.filter(
@@ -142,22 +156,53 @@ export const Navbar: React.FC = () => {
               </a>
             </div>
 
-            {/* Customer portal button */}
+            {/* Dashboard button - accessible if logged in or takes to login */}
             <button
-              onClick={() => handleNav('conta')}
-              className={`px-3.5 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 border transition-all ${
-                currentView === 'conta'
-                  ? 'bg-[rgba(243,241,234,0.12)] border-[#F3F1EA] text-[#F3F1EA]'
-                  : 'border-[rgba(243,241,234,0.14)] text-[#98A1BC] hover:text-[#F3F1EA] hover:border-[rgba(243,241,234,0.3)]'
+              onClick={() => handleNav('dashboard')}
+              className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 border transition-all ${
+                currentView === 'dashboard'
+                  ? 'bg-[#19D3F3]/15 border-[#19D3F3] text-[#19D3F3] shadow-[0_0_15px_rgba(25,211,243,0.25)]'
+                  : 'border-[rgba(243,241,234,0.16)] text-[#F3F1EA] bg-white/5 hover:text-[#19D3F3] hover:border-[#19D3F3]/50'
               }`}
-              title="Área do Cliente"
+              title="Dashboard: Resumo Visual, Esteira e Feed de Interações"
             >
-              <User className="w-3.5 h-3.5" />
-              Área do Cliente
-              {activeOrdersCount > 0 && (
-                <span className="w-2 h-2 rounded-full bg-[#19D3F3] animate-pulse" />
-              )}
+              <LayoutDashboard className="w-3.5 h-3.5 text-[#19D3F3]" />
+              <span>Dashboard</span>
             </button>
+
+            {/* Customer portal button or Login button */}
+            {isAuthenticated ? (
+              <button
+                onClick={() => handleNav('conta')}
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 border transition-all ${
+                  currentView === 'conta'
+                    ? 'bg-[#F6C453]/15 border-[#F6C453] text-[#F6C453] shadow-[0_0_15px_rgba(246,196,83,0.2)]'
+                    : 'border-[rgba(243,241,234,0.16)] text-[#F3F1EA] bg-white/5 hover:text-[#F6C453] hover:border-[#F6C453]/50'
+                }`}
+                title="Área do Cliente: Projetos, Entregas, Recibos e Interação"
+              >
+                <div className="w-2 h-2 rounded-full bg-emerald-400" />
+                <span className="truncate max-w-[120px]">{currentUser?.name.split(' ')[0]}</span>
+                {activeOrdersCount > 0 && (
+                  <span className="flex items-center gap-1 font-mono text-[10px] bg-[#19D3F3]/20 text-[#19D3F3] px-1.5 py-0.2 rounded-full border border-[#19D3F3]/40">
+                    {activeOrdersCount}
+                  </span>
+                )}
+              </button>
+            ) : (
+              <button
+                onClick={() => handleNav('login')}
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 border transition-all ${
+                  currentView === 'login' || currentView === 'cadastro'
+                    ? 'bg-[#F6C453] text-[#070A17] font-bold shadow'
+                    : 'border-[rgba(243,241,234,0.16)] text-[#F3F1EA] bg-white/5 hover:text-[#F6C453] hover:border-[#F6C453]/50'
+                }`}
+                title="Acesso Seguro / Entrar na Conta"
+              >
+                <Lock className="w-3.5 h-3.5 text-[#F6C453]" />
+                <span>Entrar / Cadastrar</span>
+              </button>
+            )}
 
             {/* Admin panel quick link */}
             <button
@@ -240,6 +285,15 @@ export const Navbar: React.FC = () => {
               Sobre a Lumen
             </button>
             <button
+              onClick={() => handleNav('dashboard')}
+              className="text-left py-2.5 px-3 rounded-lg text-sm text-[#19D3F3] hover:bg-[#19D3F3]/10 font-medium flex items-center justify-between"
+            >
+              <span className="flex items-center gap-2">
+                <LayoutDashboard className="w-4 h-4 text-[#19D3F3]" /> Dashboard Geral
+              </span>
+              <span className="text-[10px] bg-[#19D3F3]/20 px-2 py-0.5 rounded text-[#19D3F3] font-bold">NOVO</span>
+            </button>
+            <button
               onClick={() => handleNav('conta')}
               className="text-left py-2.5 px-3 rounded-lg text-sm text-[#98A1BC] hover:bg-white/5 font-medium flex items-center justify-between"
             >
@@ -256,6 +310,19 @@ export const Navbar: React.FC = () => {
             >
               <SlidersHorizontal className="w-4 h-4" /> Painel Interno / Admin
             </button>
+
+            {!isAuthenticated ? (
+              <button
+                onClick={() => handleNav('login')}
+                className="text-left py-2.5 px-3 rounded-lg text-sm text-[#F6C453] bg-[#F6C453]/10 border border-[#F6C453]/20 font-bold flex items-center gap-2"
+              >
+                <Lock className="w-4 h-4 text-[#F6C453]" /> Entrar na Conta / Cadastrar
+              </button>
+            ) : (
+              <div className="pt-2 border-t border-white/5 flex items-center justify-between text-xs text-[#98A1BC] px-3">
+                <span>Logado como: <strong className="text-[#F3F1EA]">{currentUser?.name}</strong></span>
+              </div>
+            )}
           </div>
 
           {/* Social Links inside Mobile Drawer */}

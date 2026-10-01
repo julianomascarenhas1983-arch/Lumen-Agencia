@@ -18,12 +18,26 @@ import {
   RotateCcw,
   Sparkles,
   FileCheck,
+  Users,
+  MessageSquare,
+  Send,
+  Building,
+  Mail,
+  Phone,
+  Receipt,
+  UserCheck,
+  LayoutDashboard,
 } from 'lucide-react';
 
 export const AdminPanelView: React.FC = () => {
   const {
     orders,
     products,
+    clients,
+    setCurrentUserEmail,
+    setActiveRole,
+    addOrderInteraction,
+    updateClientProfile,
     updateOrderStatus,
     addDeliverable,
     updateTierPrice,
@@ -32,9 +46,12 @@ export const AdminPanelView: React.FC = () => {
     navigate,
   } = useLumen();
 
-  const [activeTab, setActiveTab] = useState<'fila' | 'catalogo'>('fila');
+  const [activeTab, setActiveTab] = useState<'fila' | 'clientes' | 'catalogo'>('fila');
   const [selectedOrderId, setSelectedOrderId] = useState<string>(orders[0]?.id || '');
+  const [selectedClientId, setSelectedClientId] = useState<string>(clients[0]?.id || '');
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'todos'>('todos');
+  const [adminReplyText, setAdminReplyText] = useState('');
+  const [clientSearch, setClientSearch] = useState('');
   
   // Deliverable modal state
   const [showAttachModal, setShowAttachModal] = useState(false);
@@ -146,7 +163,18 @@ Curadoria executiva realizada por Ana Beatriz Mello.`,
                   : 'bg-[#0C1226] text-[#98A1BC] border-[rgba(243,241,234,0.1)] hover:text-[#F3F1EA]'
               }`}
             >
-              Fila de Revisão Humana
+              Fila de Produção
+            </button>
+            <button
+              onClick={() => setActiveTab('clientes')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 ${
+                activeTab === 'clientes'
+                  ? 'bg-[#19D3F3] text-[#070A17] border-[#19D3F3]'
+                  : 'bg-[#0C1226] text-[#98A1BC] border-[rgba(243,241,234,0.1)] hover:text-[#F3F1EA]'
+              }`}
+            >
+              <Users className="w-3.5 h-3.5" />
+              <span>Clientes & Perfis</span>
             </button>
             <button
               onClick={() => setActiveTab('catalogo')}
@@ -386,9 +414,258 @@ Curadoria executiva realizada por Ana Beatriz Mello.`,
                   )}
                 </div>
 
+                {/* Direct Interactions / Alignment Chat with Client */}
+                <div className="pt-6 border-t border-[rgba(243,241,234,0.1)]">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-heading text-sm font-bold text-[#F3F1EA] uppercase tracking-wider flex items-center gap-2">
+                      <MessageSquare className="w-4 h-4 text-[#19D3F3]" />
+                      <span>Canal Direto de Interação com {selectedOrder.customer.name}</span>
+                    </h4>
+                    <span className="text-[10px] font-mono text-[#98A1BC]">
+                      {selectedOrder.interactions?.length || 0} mensagem(ns)
+                    </span>
+                  </div>
+
+                  <div className="bg-[#070A17] p-4 rounded-xl border border-[rgba(243,241,234,0.08)] space-y-3 max-h-60 overflow-y-auto">
+                    {(!selectedOrder.interactions || selectedOrder.interactions.length === 0) && (
+                      <p className="text-xs text-[#98A1BC] italic">Nenhuma mensagem trocada ainda para este pedido.</p>
+                    )}
+                    {selectedOrder.interactions?.map((msg) => (
+                      <div key={msg.id} className="text-xs space-y-1">
+                        <div className="flex items-center gap-2 text-[10px] text-[#98A1BC]">
+                          <strong className={msg.senderRole === 'client' ? 'text-[#F6C453]' : 'text-[#19D3F3]'}>
+                            {msg.senderName}
+                          </strong>
+                          <span>({msg.senderRole})</span>
+                          <span>• {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                        </div>
+                        <div className="bg-[#0C1226] p-2.5 rounded-lg text-[#F3F1EA] border border-white/5">
+                          {msg.text}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      if (!adminReplyText.trim()) return;
+                      addOrderInteraction(selectedOrder.id, {
+                        text: adminReplyText.trim(),
+                        role: 'admin',
+                        authorName: 'Renato Cunha (Diretoria Lumen)',
+                      });
+                      setAdminReplyText('');
+                    }}
+                    className="flex gap-2 mt-3"
+                  >
+                    <input
+                      type="text"
+                      value={adminReplyText}
+                      onChange={(e) => setAdminReplyText(e.target.value)}
+                      placeholder="Responder ao cliente ou deixar nota estratégica no projeto..."
+                      className="flex-1 bg-[#070A17] border border-[rgba(243,241,234,0.15)] rounded-xl px-4 py-2 text-xs text-[#F3F1EA] focus:border-[#F6C453]"
+                    />
+                    <button
+                      type="submit"
+                      disabled={!adminReplyText.trim()}
+                      className="bg-[#19D3F3] text-[#070A17] px-4 py-2 rounded-xl text-xs font-bold transition-all disabled:opacity-40 flex items-center gap-1"
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                      <span>Responder</span>
+                    </button>
+                  </form>
+                </div>
+
               </div>
             )}
 
+          </div>
+        )}
+
+        {/* TAB 2: CLIENTES & PERFIS (CRM INTERNO DA AGÊNCIA) */}
+        {activeTab === 'clientes' && (
+          <div className="space-y-6">
+            <div className="bg-[#0C1226] border border-[rgba(243,241,234,0.12)] rounded-2xl p-6 sm:p-8">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-[rgba(243,241,234,0.1)] gap-4">
+                <div>
+                  <div className="text-[10px] font-mono uppercase text-[#19D3F3] tracking-widest mb-1">
+                    GOVERNANÇA & RELACIONAMENTO COM CONTAS
+                  </div>
+                  <h3 className="font-heading text-2xl font-bold text-[#F3F1EA]">
+                    Perfis dos Clientes & Vínculo Empresarial
+                  </h3>
+                  <p className="text-xs text-[#98A1BC] mt-0.5">
+                    Consulte os dados cadastrais, histórico de pedidos, notas internas da equipe e acesse diretamente a visão de qualquer cliente.
+                  </p>
+                </div>
+
+                <div className="w-full sm:w-64">
+                  <input
+                    type="text"
+                    value={clientSearch}
+                    onChange={(e) => setClientSearch(e.target.value)}
+                    placeholder="Buscar por cliente, empresa ou CNPJ..."
+                    className="w-full bg-[#070A17] border border-[rgba(243,241,234,0.15)] rounded-xl px-4 py-2 text-xs text-[#F3F1EA] focus:border-[#19D3F3]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-6">
+                {/* Clients list */}
+                <div className="lg:col-span-4 space-y-3">
+                  {clients
+                    .filter((c) =>
+                      c.name.toLowerCase().includes(clientSearch.toLowerCase()) ||
+                      c.companyName.toLowerCase().includes(clientSearch.toLowerCase()) ||
+                      c.document.includes(clientSearch)
+                    )
+                    .map((cli) => {
+                      const isSelected = cli.id === selectedClientId;
+                      const orderCount = orders.filter((o) => o.customer.email.toLowerCase() === cli.email.toLowerCase()).length;
+                      return (
+                        <div
+                          key={cli.id}
+                          onClick={() => setSelectedClientId(cli.id)}
+                          className={`p-4 rounded-xl border cursor-pointer transition-all ${
+                            isSelected
+                              ? 'bg-[#070A17] border-[#19D3F3] shadow-[0_0_15px_rgba(25,211,243,0.15)]'
+                              : 'bg-[#070A17]/40 border-[rgba(243,241,234,0.08)] hover:border-white/20'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-heading font-bold text-sm text-[#F3F1EA]">{cli.name}</span>
+                            <span className="text-[10px] bg-white/5 px-2 py-0.5 rounded text-[#98A1BC] font-mono">
+                              {orderCount} projeto(s)
+                            </span>
+                          </div>
+                          <p className="text-xs text-[#19D3F3] font-medium">{cli.companyName}</p>
+                          <p className="text-[11px] text-[#98A1BC] mt-0.5">{cli.email}</p>
+                        </div>
+                      );
+                    })}
+                </div>
+
+                {/* Selected Client Dossier */}
+                {(() => {
+                  const selCli = clients.find((c) => c.id === selectedClientId) || clients[0];
+                  if (!selCli) return null;
+                  const cliOrders = orders.filter((o) => o.customer.email.toLowerCase() === selCli.email.toLowerCase());
+                  const totalSpent = cliOrders.reduce((sum, o) => sum + (o.payment.amount || o.price), 0);
+
+                  return (
+                    <div className="lg:col-span-8 bg-[#070A17] border border-[rgba(243,241,234,0.1)] rounded-2xl p-6 space-y-6">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-white/10 gap-3">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-heading text-xl font-bold text-[#F3F1EA]">{selCli.name}</h4>
+                            <span className="text-[10px] font-mono uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded">
+                              Ativo
+                            </span>
+                          </div>
+                          <p className="text-xs text-[#98A1BC] mt-0.5">
+                            {selCli.companyName} • {selCli.segment} • {selCli.city || 'São Paulo - SP'}
+                          </p>
+                        </div>
+
+                        {/* Button to log in / view as this client */}
+                        <div className="flex flex-wrap items-center gap-2">
+                          <button
+                            onClick={() => {
+                              setCurrentUserEmail(selCli.email);
+                              setActiveRole('client');
+                              navigate('dashboard');
+                            }}
+                            className="bg-[#19D3F3] hover:bg-[#15b7d3] text-[#070A17] px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow flex items-center gap-1.5"
+                            title="Abrir Dashboard Visual com compras e status deste cliente"
+                          >
+                            <LayoutDashboard className="w-3.5 h-3.5" />
+                            <span>Dashboard do Cliente</span>
+                          </button>
+                          <button
+                            onClick={() => {
+                              setCurrentUserEmail(selCli.email);
+                              setActiveRole('client');
+                              navigate('conta');
+                            }}
+                            className="bg-white/10 hover:bg-white/20 text-[#F3F1EA] border border-white/20 px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5"
+                            title="Abrir Portal Completo com recibos fiscais deste cliente"
+                          >
+                            <UserCheck className="w-3.5 h-3.5" />
+                            <span>Portal & Recibos</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Financial and Account Manager summary */}
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+                        <div className="bg-[#0C1226] p-3.5 rounded-xl border border-white/5">
+                          <span className="text-[10px] uppercase font-mono text-[#98A1BC] block">LTV Contratado</span>
+                          <span className="font-bold text-sm text-[#F6C453]">R$ {totalSpent.toLocaleString('pt-BR')}</span>
+                        </div>
+                        <div className="bg-[#0C1226] p-3.5 rounded-xl border border-white/5">
+                          <span className="text-[10px] uppercase font-mono text-[#98A1BC] block">Total Pedidos</span>
+                          <span className="font-bold text-sm text-[#F3F1EA]">{cliOrders.length}</span>
+                        </div>
+                        <div className="bg-[#0C1226] p-3.5 rounded-xl border border-white/5">
+                          <span className="text-[10px] uppercase font-mono text-[#98A1BC] block">CNPJ / CPF</span>
+                          <span className="font-bold text-xs text-[#F3F1EA] font-mono">{selCli.document}</span>
+                        </div>
+                        <div className="bg-[#0C1226] p-3.5 rounded-xl border border-white/5">
+                          <span className="text-[10px] uppercase font-mono text-[#98A1BC] block">Gestor da Conta</span>
+                          <span className="font-bold text-xs text-[#19D3F3]">{selCli.accountManager || 'Renato Cunha'}</span>
+                        </div>
+                      </div>
+
+                      {/* Internal Notes from Agency */}
+                      <div className="bg-[#0C1226] p-4 rounded-xl border border-white/10 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-[#F6C453] uppercase font-mono flex items-center gap-1.5">
+                            <ShieldCheck className="w-4 h-4" />
+                            Anotações Privadas da Equipe (Notas Internas de Vínculo):
+                          </span>
+                        </div>
+                        <textarea
+                          rows={3}
+                          value={selCli.notesFromTeam || ''}
+                          onChange={(e) => updateClientProfile({ ...selCli, notesFromTeam: e.target.value })}
+                          placeholder="Adicione orientações de atendimento, preferências do cliente, prazos especiais ou observações..."
+                          className="w-full bg-[#070A17] border border-white/10 rounded-xl p-3 text-xs text-[#F3F1EA] focus:border-[#F6C453]"
+                        />
+                        <span className="text-[10px] text-[#98A1BC] block">
+                          As notas são salvas automaticamente e ficam visíveis apenas para usuários internos da Lumen.
+                        </span>
+                      </div>
+
+                      {/* Client Orders History */}
+                      <div>
+                        <h5 className="font-heading text-xs uppercase font-bold text-[#98A1BC] tracking-wider mb-3">
+                          Projetos e Contratos deste Cliente
+                        </h5>
+                        <div className="space-y-2">
+                          {cliOrders.map((co) => (
+                            <div
+                              key={co.id}
+                              className="bg-[#0C1226] p-3 rounded-xl border border-white/5 flex items-center justify-between text-xs"
+                            >
+                              <div>
+                                <span className="font-bold text-[#F3F1EA] block">{co.productTitle} ({co.tierName})</span>
+                                <span className="text-[10px] text-[#98A1BC] font-mono">
+                                  #{co.id} • {co.contractNumber || 'Sem contrato'} • Status: {co.status}
+                                </span>
+                              </div>
+                              <span className="font-bold text-[#F6C453]">R$ {co.price.toLocaleString('pt-BR')}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                    </div>
+                  );
+                })()}
+              </div>
+
+            </div>
           </div>
         )}
 

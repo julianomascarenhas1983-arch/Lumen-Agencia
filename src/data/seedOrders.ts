@@ -3,6 +3,8 @@ import { Order } from '../types';
 export const SEED_ORDERS: Order[] = [
   {
     id: 'LUM-94812',
+    contractNumber: 'CTR-2026-09-94812',
+    receiptUrl: '#recibo-94812',
     createdAt: '2026-09-20T10:15:00.000Z',
     productSlug: 'diagnostico-plano-estrategico',
     tierLevel: 'pro',
@@ -11,7 +13,7 @@ export const SEED_ORDERS: Order[] = [
     price: 1490,
     deliveryDays: 5,
     customer: {
-      name: 'Camila Vasconcelos',
+      name: 'Dra. Camila Vasconcelos',
       email: 'camila.v@aurorasaude.com.br',
       phone: '(11) 98765-4321',
       document: '34.892.102/0001-44',
@@ -29,13 +31,13 @@ export const SEED_ORDERS: Order[] = [
       {
         timestamp: '2026-09-20T10:16:30.000Z',
         title: 'Pagamento aprovado via Pix',
-        description: 'Transação confirmada no valor de R$ 1.490,00.',
+        description: 'Transação confirmada no valor de R$ 1.490,00 com recibo fiscal registrado.',
         status: 'aguardando_briefing',
       },
       {
         timestamp: '2026-09-20T11:45:00.000Z',
         title: 'Briefing estratégico concluído',
-        description: 'Resumo estruturado validado e enviado para produção.',
+        description: 'Resumo estruturado validado e enviado para a esteira de produção.',
         status: 'em_producao',
       },
       {
@@ -63,6 +65,29 @@ export const SEED_ORDERS: Order[] = [
     revisionRoundsTotal: 2,
     revisionRoundsUsed: 0,
     adjustments: [],
+    interactions: [
+      {
+        id: 'msg-01',
+        senderRole: 'admin',
+        senderName: 'Renato Cunha (Diretor Estratégico)',
+        text: 'Olá, Dra. Camila! Seja muito bem-vinda à Lumen. Seu briefing foi recepcionado e nós já cruzamos a concorrência na região dos Jardins. Entregaremos a primeira versão homologada dentro do prazo.',
+        timestamp: '2026-09-20T14:20:00.000Z',
+      },
+      {
+        id: 'msg-02',
+        senderRole: 'client',
+        senderName: 'Dra. Camila Vasconcelos',
+        text: 'Excelente, Renato! Gostaria de reforçar que nosso foco principal são os procedimentos preventivos e terapias de reposição segura, sem apelo comercial apelativo.',
+        timestamp: '2026-09-20T15:05:00.000Z',
+      },
+      {
+        id: 'msg-03',
+        senderRole: 'curator',
+        senderName: 'Ana Beatriz Mello (Curadora Sênior)',
+        text: 'Perfeito, Dra. Camila. Consideramos isso prioritário no plano de 90 dias. Acabamos de disponibilizar o Dossiê Final no painel para sua conferência!',
+        timestamp: '2026-09-23T14:32:00.000Z',
+      },
+    ],
     deliverables: [
       {
         id: 'del-01',
@@ -73,6 +98,7 @@ export const SEED_ORDERS: Order[] = [
         fileSize: '4.8 MB',
         content: `DOSSIÊ ESTRATÉGICO EXECUTIVO - AURORA SAÚDE INTEGRADA
 Curadoria: Renato Cunha | Lumen Agência Virtual
+Homologação: #LUM-94812-HOMOLOG
 
 1. SUMÁRIO EXECUTIVO & DIAGNÓSTICO
 A Aurora Saúde possui posicionamento premium genuíno, mas sofre de invisibilidade digital qualificada. Seus concorrentes diretos capturam mais de 70% das buscas no Google por termos de longevidade e medicina preventiva na capital paulista.
@@ -94,6 +120,8 @@ A Aurora Saúde possui posicionamento premium genuíno, mas sofre de invisibilid
   },
   {
     id: 'LUM-88310',
+    contractNumber: 'CTR-2026-09-88310',
+    receiptUrl: '#recibo-88310',
     createdAt: '2026-09-22T08:30:00.000Z',
     productSlug: 'identidade-visual',
     tierLevel: 'pro',
@@ -121,7 +149,7 @@ A Aurora Saúde possui posicionamento premium genuíno, mas sofre de invisibilid
       {
         timestamp: '2026-09-22T08:31:00.000Z',
         title: 'Pagamento aprovado em 3x sem juros',
-        description: 'Cobrança confirmada pela operadora de cartão.',
+        description: 'Cobrança confirmada pela operadora de cartão com contrato emitido.',
         status: 'aguardando_briefing',
       },
       {
@@ -149,5 +177,21 @@ A Aurora Saúde possui posicionamento premium genuíno, mas sofre de invisibilid
     revisionRoundsTotal: 3,
     revisionRoundsUsed: 0,
     adjustments: [],
+    interactions: [
+      {
+        id: 'msg-10',
+        senderRole: 'admin',
+        senderName: 'Renato Cunha (Diretor Estratégico)',
+        text: 'Gabriel, suas referências de tipografia suíça e brutalismo foram perfeitas. O diretor de arte Lucas Prado já assumiu os estudos vetoriais do símbolo.',
+        timestamp: '2026-09-22T10:15:00.000Z',
+      },
+      {
+        id: 'msg-11',
+        senderRole: 'client',
+        senderName: 'Gabriel Albuquerque',
+        text: 'Maravilha! Por favor prestem atenção em como o logo se comporta em fundos de concreto aparente e metal fosco.',
+        timestamp: '2026-09-22T11:00:00.000Z',
+      },
+    ],
   },
 ];
