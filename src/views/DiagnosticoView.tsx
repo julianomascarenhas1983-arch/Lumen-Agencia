@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useLumen } from '../context/LumenContext';
 import { DiagnosticoResult, TierLevel } from '../types';
+import { generateLocalDiagnostico } from '../data/localFallback';
 import {
   Sparkles,
   CheckCircle2,
@@ -87,8 +88,11 @@ export const DiagnosticoView: React.FC = () => {
       setResult(data);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err: any) {
-      console.error(err);
-      setErrorMessage('Não foi possível concluir o diagnóstico no momento. Tente novamente.');
+      console.warn('API /api/diagnostico offline ou ambiente estático, usando gerador local inteligente:', err);
+      // Fallback local instantâneo para HostGator e hospedagens estáticas
+      const localData = generateLocalDiagnostico(formData);
+      setResult(localData);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setIsLoading(false);
     }

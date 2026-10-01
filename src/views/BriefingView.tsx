@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLumen } from '../context/LumenContext';
+import { generateLocalBriefingResponse } from '../data/localFallback';
 import {
   Sparkles,
   Send,
@@ -141,16 +142,28 @@ export const BriefingView: React.FC = () => {
         }
       }
     } catch (err) {
-      console.error(err);
-      // Fallback message
+      console.warn('API /api/briefing/chat offline ou ambiente estático, usando assistente local:', err);
+      const localData = generateLocalBriefingResponse(userText, questionCount + 1, order.productTitle, newMessages);
       setMessages((prev) => [
         ...prev,
         {
           role: 'assistant',
-          text: 'Recebido com sucesso! Seus detalhes foram anexados ao briefing estruturado ao lado.',
+          text: localData.assistantMessage,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         },
       ]);
+      if (localData.isComplete && localData.summary) {
+        setIsComplete(true);
+        setSummary((prev) => ({ ...prev, ...localData.summary }));
+      } else {
+        if (questionCount + 1 === 2) {
+          setSummary((prev) => ({ ...prev, businessName: userText.slice(0, 80) }));
+        } else if (questionCount + 1 === 3) {
+          setSummary((prev) => ({ ...prev, targetAudience: userText }));
+        } else if (questionCount + 1 === 4) {
+          setSummary((prev) => ({ ...prev, toneOfVoice: userText }));
+        }
+      }
     } finally {
       setIsTyping(false);
     }
