@@ -348,6 +348,16 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Download direto do pacote pronto para HostGator cPanel
+app.get('/download-hostgator', (req, res) => {
+  const zipPath = path.resolve('dist/site-lumen-hostgator.zip');
+  if (fs.existsSync(zipPath)) {
+    res.download(zipPath, 'site-lumen-hostgator.zip');
+  } else {
+    res.status(404).send('Arquivo zip em geração. Aguarde alguns instantes.');
+  }
+});
+
 // Mount Vite in dev or static files in production
 const setupFrontend = async () => {
   const distPath = path.resolve('dist');
