@@ -1,28 +1,11 @@
 import React, { useState } from 'react';
 import { useLumen, AppView } from '../context/LumenContext';
-import {
-  Sparkles,
-  Shield,
-  User,
-  SlidersHorizontal,
-  Menu,
-  X,
-  ArrowUpRight,
-  Instagram,
-  Linkedin,
-  MessageCircle,
-  LayoutDashboard,
-  Lock,
-  LogIn,
-} from 'lucide-react';
+import { createGeneralWhatsAppUrl } from '../utils/whatsapp';
+import { Sparkles, SlidersHorizontal, Menu, X, ArrowUpRight, Instagram, Linkedin, MessageCircle } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
-  const { currentView, navigate, orders, isAuthenticated, currentUser } = useLumen();
+  const { currentView, navigate } = useLumen();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  const activeOrdersCount = orders.filter(
-    (o) => o.status !== 'aprovado'
-  ).length;
 
   const handleNav = (view: AppView) => {
     navigate(view);
@@ -156,53 +139,17 @@ export const Navbar: React.FC = () => {
               </a>
             </div>
 
-            {/* Dashboard button - accessible if logged in or takes to login */}
-            <button
-              onClick={() => handleNav('dashboard')}
-              className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 border transition-all ${
-                currentView === 'dashboard'
-                  ? 'bg-[#19D3F3]/15 border-[#19D3F3] text-[#19D3F3] shadow-[0_0_15px_rgba(25,211,243,0.25)]'
-                  : 'border-[rgba(243,241,234,0.16)] text-[#F3F1EA] bg-white/5 hover:text-[#19D3F3] hover:border-[#19D3F3]/50'
-              }`}
-              title="Dashboard: Resumo Visual, Esteira e Feed de Interações"
+            {/* WhatsApp VIP Concierge Action */}
+            <a
+              href={createGeneralWhatsAppUrl('Olá! Gostaria de conversar com um curador da Lumen.')}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3.5 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 border border-[#25D366]/40 bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366]/20 transition-all"
+              title="Falar com Curador no WhatsApp"
             >
-              <LayoutDashboard className="w-3.5 h-3.5 text-[#19D3F3]" />
-              <span>Dashboard</span>
-            </button>
-
-            {/* Customer portal button or Login button */}
-            {isAuthenticated ? (
-              <button
-                onClick={() => handleNav('conta')}
-                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 border transition-all ${
-                  currentView === 'conta'
-                    ? 'bg-[#F6C453]/15 border-[#F6C453] text-[#F6C453] shadow-[0_0_15px_rgba(246,196,83,0.2)]'
-                    : 'border-[rgba(243,241,234,0.16)] text-[#F3F1EA] bg-white/5 hover:text-[#F6C453] hover:border-[#F6C453]/50'
-                }`}
-                title="Área do Cliente: Projetos, Entregas, Recibos e Interação"
-              >
-                <div className="w-2 h-2 rounded-full bg-emerald-400" />
-                <span className="truncate max-w-[120px]">{currentUser?.name.split(' ')[0]}</span>
-                {activeOrdersCount > 0 && (
-                  <span className="flex items-center gap-1 font-mono text-[10px] bg-[#19D3F3]/20 text-[#19D3F3] px-1.5 py-0.2 rounded-full border border-[#19D3F3]/40">
-                    {activeOrdersCount}
-                  </span>
-                )}
-              </button>
-            ) : (
-              <button
-                onClick={() => handleNav('login')}
-                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 border transition-all ${
-                  currentView === 'login' || currentView === 'cadastro'
-                    ? 'bg-[#F6C453] text-[#070A17] font-bold shadow'
-                    : 'border-[rgba(243,241,234,0.16)] text-[#F3F1EA] bg-white/5 hover:text-[#F6C453] hover:border-[#F6C453]/50'
-                }`}
-                title="Acesso Seguro / Entrar na Conta"
-              >
-                <Lock className="w-3.5 h-3.5 text-[#F6C453]" />
-                <span>Entrar / Cadastrar</span>
-              </button>
-            )}
+              <MessageCircle className="w-3.5 h-3.5 fill-[#25D366]" />
+              <span>WhatsApp</span>
+            </a>
 
             {/* Admin panel quick link */}
             <button
@@ -222,20 +169,22 @@ export const Navbar: React.FC = () => {
               onClick={() => handleNav('produtos')}
               className="bg-[#FF3B30] hover:bg-[#e0342a] text-[#F3F1EA] px-5 py-2.5 rounded-full text-xs font-bold tracking-wide transition-all shadow-[0_4px_16px_rgba(255,59,48,0.3)] hover:shadow-[0_6px_20px_rgba(255,59,48,0.45)] hover:scale-[1.02] active:scale-[0.98] min-h-[44px] flex items-center gap-1.5"
             >
-              <span>Iniciar projeto</span>
+              <span>Ver planos</span>
               <ArrowUpRight className="w-4 h-4" />
             </button>
           </div>
 
           {/* Mobile menu trigger */}
           <div className="flex items-center gap-2 lg:hidden">
-            <button
-              onClick={() => handleNav('conta')}
-              className="p-2 text-[#98A1BC] hover:text-[#F3F1EA]"
-              aria-label="Minha Conta"
+            <a
+              href="https://wa.me/5511998421080?text=Ol%C3%A1!%20Vim%20pelo%20site%20da%20Lumen."
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 text-[#25D366] hover:text-white"
+              aria-label="WhatsApp da Lumen"
             >
-              <User className="w-5 h-5" />
-            </button>
+              <MessageCircle className="w-5 h-5 fill-[#25D366]" />
+            </a>
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 text-[#F3F1EA] hover:text-[#F6C453] focus-visible:ring-2 focus-visible:ring-[#F6C453]"
@@ -285,44 +234,11 @@ export const Navbar: React.FC = () => {
               Sobre a Lumen
             </button>
             <button
-              onClick={() => handleNav('dashboard')}
-              className="text-left py-2.5 px-3 rounded-lg text-sm text-[#19D3F3] hover:bg-[#19D3F3]/10 font-medium flex items-center justify-between"
-            >
-              <span className="flex items-center gap-2">
-                <LayoutDashboard className="w-4 h-4 text-[#19D3F3]" /> Dashboard Geral
-              </span>
-              <span className="text-[10px] bg-[#19D3F3]/20 px-2 py-0.5 rounded text-[#19D3F3] font-bold">NOVO</span>
-            </button>
-            <button
-              onClick={() => handleNav('conta')}
-              className="text-left py-2.5 px-3 rounded-lg text-sm text-[#98A1BC] hover:bg-white/5 font-medium flex items-center justify-between"
-            >
-              <span>Área do Cliente (Pedidos & Entregas)</span>
-              {activeOrdersCount > 0 && (
-                <span className="bg-[#19D3F3] text-[#070A17] text-[10px] font-bold px-1.5 py-0.5 rounded-full">
-                  {activeOrdersCount}
-                </span>
-              )}
-            </button>
-            <button
               onClick={() => handleNav('admin')}
               className="text-left py-2.5 px-3 rounded-lg text-sm text-[#F6C453] hover:bg-[#F6C453]/10 font-medium flex items-center gap-2"
             >
               <SlidersHorizontal className="w-4 h-4" /> Painel Interno / Admin
             </button>
-
-            {!isAuthenticated ? (
-              <button
-                onClick={() => handleNav('login')}
-                className="text-left py-2.5 px-3 rounded-lg text-sm text-[#F6C453] bg-[#F6C453]/10 border border-[#F6C453]/20 font-bold flex items-center gap-2"
-              >
-                <Lock className="w-4 h-4 text-[#F6C453]" /> Entrar na Conta / Cadastrar
-              </button>
-            ) : (
-              <div className="pt-2 border-t border-white/5 flex items-center justify-between text-xs text-[#98A1BC] px-3">
-                <span>Logado como: <strong className="text-[#F3F1EA]">{currentUser?.name}</strong></span>
-              </div>
-            )}
           </div>
 
           {/* Social Links inside Mobile Drawer */}

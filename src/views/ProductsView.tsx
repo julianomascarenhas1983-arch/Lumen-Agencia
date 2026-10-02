@@ -232,7 +232,7 @@ export const ProductsView: React.FC = () => {
                     onClick={() => navigate('produto-detalhe', { slug: product.slug, tier: 'pro' })}
                     className="w-full bg-[#FF3B30] hover:bg-[#e0342a] text-[#F3F1EA] py-3 rounded-lg text-xs font-bold tracking-wide transition-all shadow-md flex items-center justify-center gap-2 min-h-[44px]"
                   >
-                    <span>Configurar e Contratar</span>
+                    <span>Escolher plano e contratar</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>

@@ -122,7 +122,7 @@ export const CatalogVitrine: React.FC = () => {
                     onClick={() => navigate('produto-detalhe', { slug: product.slug, tier: 'pro' })}
                     className="w-full bg-white/5 hover:bg-[#FF3B30] text-[#F3F1EA] py-3 rounded-lg text-xs font-bold tracking-wide transition-all border border-white/10 hover:border-transparent flex items-center justify-center gap-2 group-hover:bg-[#FF3B30] min-h-[44px] shadow-sm hover:shadow-[0_0_20px_rgba(255,59,48,0.3)]"
                   >
-                    <span>Configurar e Contratar</span>
+                    <span>Escolher plano e contratar</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>

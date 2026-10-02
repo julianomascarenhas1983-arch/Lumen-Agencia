@@ -29,15 +29,22 @@ export const generateLocalDiagnostico = (formData: DiagnosticoFormData) => {
   ];
 
   let suggestedSlogan = 'Autoridade, precisão e design que transformam presença em resultado.';
-  let recommendedProducts = [
+  let recommendedProducts: {
+    slug: string;
+    tier: 'essencial' | 'pro' | 'premium';
+    title: string;
+    reason: string;
+  }[] = [
     {
-      productSlug: 'diagnostico-plano-estrategico',
+      slug: 'diagnostico-plano-estrategico',
       tier: 'pro',
+      title: 'Diagnóstico & Plano Estratégico',
       reason: 'Estruturação do plano mestre de comunicação e táticas de canais.',
     },
     {
-      productSlug: 'identidade-visual',
+      slug: 'identidade-visual',
       tier: 'pro',
+      title: 'Identidade Visual & Branding',
       reason: 'Construção da assinatura visual magnética e ativos da marca.',
     },
   ];

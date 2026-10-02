@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useLumen } from '../context/LumenContext';
 import { PILLARS, TierLevel } from '../data/catalog';
+import { createWhatsAppPlanUrl, LUMEN_WHATSAPP_DISPLAY } from '../utils/whatsapp';
 import {
   Clock,
   RefreshCw,
@@ -10,8 +11,9 @@ import {
   ArrowRight,
   ChevronLeft,
   Sparkles,
-  FileText,
   UserCheck,
+  MessageCircle,
+  Zap,
 } from 'lucide-react';
 
 export const ProductDetailView: React.FC = () => {
@@ -26,12 +28,14 @@ export const ProductDetailView: React.FC = () => {
   const tierData = product.tiers[currentTier];
   const pillar = PILLARS[product.pillar];
 
-  const handleHire = () => {
-    navigate('checkout', {
-      slug: product.slug,
-      tier: currentTier,
-    });
-  };
+  const whatsAppUrl = createWhatsAppPlanUrl({
+    productTitle: product.title,
+    tierName: tierData.name,
+    price: tierData.price,
+    deliveryDays: tierData.deliveryDays,
+    revisionsCount: tierData.revisionsCount,
+    isRecurring: product.slug === 'lumen-continuo',
+  });
 
   return (
     <div className="py-12 md:py-20 bg-[#070A17] min-h-screen">
@@ -208,26 +212,40 @@ export const ProductDetailView: React.FC = () => {
 
                 <div className="flex items-center justify-between text-[#98A1BC]">
                   <span className="flex items-center gap-1.5">
-                    <Sparkles className="w-4 h-4 text-[#FFD400]" /> Briefing guiado:
+                    <MessageCircle className="w-4 h-4 text-[#25D366]" /> Atendimento direto:
                   </span>
-                  <span className="font-bold text-[#F3F1EA]">
-                    Imediato após o pagamento
+                  <span className="font-bold text-[#25D366]">
+                    WhatsApp da Lumen
                   </span>
                 </div>
               </div>
 
-              {/* Primary Action Button (Red token --r: #FF3B30) */}
-              <button
-                onClick={handleHire}
-                className="w-full bg-[#FF3B30] hover:bg-[#e0342a] text-[#F3F1EA] py-4 rounded-xl text-sm font-bold tracking-wide transition-all shadow-[0_6px_24px_rgba(255,59,48,0.4)] hover:scale-[1.02] active:scale-[0.98] min-h-[48px] flex items-center justify-center gap-2 mb-4"
+              {/* Direct WhatsApp Action Button */}
+              <a
+                href={whatsAppUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full bg-[#25D366] hover:bg-[#20ba5a] text-[#070A17] py-4 px-6 rounded-xl text-sm font-extrabold tracking-wide transition-all shadow-[0_6px_24px_rgba(37,211,102,0.4)] hover:shadow-[0_8px_30px_rgba(37,211,102,0.55)] hover:scale-[1.02] active:scale-[0.98] min-h-[52px] flex items-center justify-center gap-2.5 mb-4 group"
               >
-                <span>Contratar {tierData.name}</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
+                <MessageCircle className="w-5 h-5 fill-[#070A17] text-[#070A17] shrink-0" />
+                <span>Escolher plano e ir para o WhatsApp</span>
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+              </a>
 
-              <p className="text-[11px] text-[#98A1BC] text-center leading-relaxed">
-                Pagamento seguro e simulado com aprovação imediata para iniciar o briefing com IA.
-              </p>
+              {/* Trust & Process explanation */}
+              <div className="p-3.5 rounded-xl bg-[#070A17] border border-[rgba(243,241,234,0.08)] space-y-2">
+                <div className="flex items-center gap-2 text-xs font-semibold text-[#F3F1EA]">
+                  <Zap className="w-3.5 h-3.5 text-[#F6C453]" />
+                  <span>Como funciona a contratação:</span>
+                </div>
+                <p className="text-[11px] text-[#98A1BC] leading-relaxed">
+                  Ao clicar, você será redirecionado para o WhatsApp oficial da Lumen (<strong className="text-[#F3F1EA]">{LUMEN_WHATSAPP_DISPLAY}</strong>) com o plano <strong className="text-[#F6C453]">{tierData.name}</strong> e valor de <strong className="text-[#F3F1EA]">R$ {tierData.price.toLocaleString('pt-BR')}</strong> já organizados para você ser atendido por um especialista sênior.
+                </p>
+                <div className="text-[10px] text-[#98A1BC]/70 flex items-center gap-1.5 pt-1">
+                  <ShieldCheck className="w-3 h-3 text-[#19D3F3]" />
+                  <span>Sem formulários cansativos • Sem checkout • Atendimento humano</span>
+                </div>
+              </div>
 
             </div>
           </div>

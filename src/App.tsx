@@ -8,11 +8,6 @@ import { HomeView } from './views/HomeView';
 import { ProductsView } from './views/ProductsView';
 import { ProductDetailView } from './views/ProductDetailView';
 import { DiagnosticoView } from './views/DiagnosticoView';
-import { CheckoutView } from './views/CheckoutView';
-import { BriefingView } from './views/BriefingView';
-import { CustomerPortalView } from './views/CustomerPortalView';
-import { DashboardView } from './views/DashboardView';
-import { AuthView } from './views/AuthView';
 import { AdminPanelView } from './views/AdminPanelView';
 import { InstitutionalView } from './views/InstitutionalView';
 
@@ -23,24 +18,12 @@ const AppContent: React.FC = () => {
     switch (currentView) {
       case 'home':
         return <HomeView />;
-      case 'dashboard':
-        return <DashboardView />;
       case 'produtos':
         return <ProductsView />;
       case 'produto-detalhe':
         return <ProductDetailView />;
       case 'diagnostico':
         return <DiagnosticoView />;
-      case 'checkout':
-        return <CheckoutView />;
-      case 'briefing':
-        return <BriefingView />;
-      case 'conta':
-        return <CustomerPortalView />;
-      case 'login':
-        return <AuthView initialMode="login" />;
-      case 'cadastro':
-        return <AuthView initialMode="register" />;
       case 'admin':
         return <AdminPanelView />;
       case 'sobre':

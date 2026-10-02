@@ -12,15 +12,15 @@ export const HowItWorksSection: React.FC = () => {
       tag: 'Transparência total',
       color: '#19D3F3',
       description:
-        'Navegue pelo catálogo com preços abertos, prazos e entregáveis detalhados. Selecione o nível ideal (Essencial, Pro ou Premium) e conclua a contratação em menos de 2 minutos.',
+        'Navegue pelo catálogo com preços abertos, prazos e entregáveis detalhados. Selecione o nível ideal (Essencial, Pro ou Premium) e clique para iniciar no WhatsApp da Lumen.',
     },
     {
       num: '02',
-      title: 'Briefing estratégico guiado por IA',
-      tag: 'Velocidade e precisão',
+      title: 'Alinhamento direto no WhatsApp',
+      tag: 'Sem burocracia',
       color: '#FF2E93',
       description:
-        'Nossa IA especializada entrevista você em 4 perguntas objetivas sobre seu modelo de negócio, público-alvo e preferências estéticas. O resumo executivo é sintetizado na hora.',
+        'A mensagem com o plano e valor já vai preenchida. Um especialista da Lumen recebe seu pedido na hora, alinha o objetivo do seu negócio e inicia o briefing de forma dinâmica.',
     },
     {
       num: '03',
@@ -28,15 +28,15 @@ export const HowItWorksSection: React.FC = () => {
       tag: 'Padrão sênior',
       color: '#FFD400',
       description:
-        'A IA acelera rascunhos, variações e estruturas de dados. Em seguida, diretores de arte, estrategistas e redatores seniores assumem o projeto para refinar, lapidar e auditar cada detalhe.',
+        'A IA acelera rascunhos, variações e estruturas de dados. Em seguida, diretores de arte, estrategistas e redatores seniores refinam, lapidam e auditam cada detalhe com rigor publicitário.',
     },
     {
       num: '04',
-      title: 'Entrega na plataforma e rodadas de ajuste',
+      title: 'Entrega com rodadas de ajuste garantidas',
       tag: 'Garantia contratual',
       color: '#F6C453',
       description:
-        'Seus materiais prontos são disponibilizados na Área do Cliente em alta resolução, prontos para uso. Você pode aprovar imediatamente ou solicitar rodadas formais de ajuste.',
+        'Seus materiais prontos são entregues em alta resolução diretamente com seu curador responsável, com rodadas contratuais de revisão inclusas para sua total segurança.',
     },
   ];
 
@@ -53,7 +53,7 @@ export const HowItWorksSection: React.FC = () => {
             Como funciona: do clique à entrega final em 4 etapas lineares.
           </h2>
           <p className="mt-4 text-base sm:text-lg text-[#98A1BC]">
-            Substituímos a burocracia das agências tradicionais por um fluxo contínuo e rastreável dentro da sua área do cliente.
+            Substituímos a burocracia de cadastros e checkouts por atendimento direto no WhatsApp com nossos curadores especialistas.
           </p>
         </div>
 

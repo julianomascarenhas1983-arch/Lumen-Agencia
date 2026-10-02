@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useLumen } from '../context/LumenContext';
 import { DiagnosticoResult, TierLevel } from '../types';
 import { generateLocalDiagnostico } from '../data/localFallback';
+import { createWhatsAppPlanUrl } from '../utils/whatsapp';
 import {
   Sparkles,
   CheckCircle2,
@@ -13,6 +14,7 @@ import {
   Share2,
   Mail,
   Zap,
+  MessageCircle,
 } from 'lucide-react';
 
 export const DiagnosticoView: React.FC = () => {
@@ -444,7 +446,21 @@ export const DiagnosticoView: React.FC = () => {
                 {result.recommendedProducts.map((rec) => {
                   const productObj = getProduct(rec.slug);
                   const tierLevel: TierLevel = (rec.tier === 'essencial' || rec.tier === 'premium') ? rec.tier : 'pro';
-                  const tierPrice = productObj?.tiers[tierLevel]?.price || 990;
+                  const tierData = productObj?.tiers[tierLevel] || {
+                    name: `Nível ${tierLevel.toUpperCase()}`,
+                    price: 990,
+                    deliveryDays: 5,
+                    revisionsCount: 2,
+                  };
+
+                  const recWhatsAppUrl = createWhatsAppPlanUrl({
+                    productTitle: rec.title,
+                    tierName: tierData.name,
+                    price: tierData.price,
+                    deliveryDays: tierData.deliveryDays,
+                    revisionsCount: tierData.revisionsCount,
+                    isRecurring: rec.slug === 'lumen-continuo',
+                  });
 
                   return (
                     <div
@@ -457,7 +473,7 @@ export const DiagnosticoView: React.FC = () => {
                             Nível {tierLevel.toUpperCase()}
                           </span>
                           <span className="text-sm font-bold text-[#F3F1EA]">
-                            R$ {tierPrice.toLocaleString('pt-BR')}
+                            R$ {tierData.price.toLocaleString('pt-BR')}
                           </span>
                         </div>
                         <h4 className="font-heading text-base font-bold text-[#F3F1EA] mb-2">
@@ -468,18 +484,31 @@ export const DiagnosticoView: React.FC = () => {
                         </p>
                       </div>
 
-                      <button
-                        onClick={() =>
-                          navigate('checkout', {
-                            slug: rec.slug,
-                            tier: tierLevel,
-                          })
-                        }
-                        className="w-full bg-[#FF3B30] hover:bg-[#e0342a] text-[#F3F1EA] py-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2"
-                      >
-                        <span>Contratar este produto</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </button>
+                      <div className="space-y-2 pt-2">
+                        <a
+                          href={recWhatsAppUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full bg-[#25D366] hover:bg-[#20ba5a] text-[#070A17] py-3 px-4 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-md"
+                        >
+                          <MessageCircle className="w-4 h-4 fill-[#070A17]" />
+                          <span>Contratar no WhatsApp</span>
+                        </a>
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            navigate('produto-detalhe', {
+                              slug: rec.slug,
+                              tier: tierLevel,
+                            })
+                          }
+                          className="w-full bg-white/5 hover:bg-white/10 text-[#98A1BC] hover:text-[#F3F1EA] py-2 rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1.5"
+                        >
+                          <span>Ver detalhes completos do plano</span>
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
                   );
                 })}

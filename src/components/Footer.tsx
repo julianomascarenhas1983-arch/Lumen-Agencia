@@ -167,9 +167,15 @@ export const Footer: React.FC = () => {
                 </button>
               </li>
               <li>
-                <button onClick={() => navigate('conta')} className="hover:text-[#F3F1EA] transition-colors">
-                  Área do Cliente (Meus Pedidos)
-                </button>
+                <a
+                  href="https://wa.me/5511998421080?text=Ol%C3%A1!%20Gostaria%20de%20falar%20com%20um%20curador%20da%20Lumen."
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-[#25D366] transition-colors flex items-center gap-1.5 text-[#25D366]"
+                >
+                  <MessageCircle className="w-3.5 h-3.5" />
+                  <span>Atendimento via WhatsApp</span>
+                </a>
               </li>
               <li>
                 <button onClick={() => navigate('admin')} className="hover:text-[#F6C453] transition-colors">

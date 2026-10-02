@@ -175,10 +175,10 @@ export const InstitutionalView: React.FC<Props> = ({ initialTab = 'sobre' }) => 
               <div className="p-6 rounded-2xl bg-[#0C1226] border border-[#F6C453]/20">
                 <span className="font-mono text-xs text-[#F6C453] uppercase">Etapa 4</span>
                 <h3 className="font-heading text-xl font-bold text-[#F3F1EA] mt-1 mb-2">
-                  Entrega Auditada na Plataforma
+                  Entrega Auditada e Acompanhamento Direto
                 </h3>
                 <p className="text-sm text-[#98A1BC]">
-                  Disponibilização imediata com arquivos em alta resolução, código limpo ou relatórios executivos. Você tem rodadas contratuais de revisão asseguradas.
+                  Disponibilização de arquivos em alta resolução, código limpo ou relatórios executivos diretamente pelo WhatsApp e canal oficial com o curador responsável. Você tem rodadas contratuais de revisão asseguradas.
                 </p>
               </div>
             </div>
@@ -360,7 +360,7 @@ export const InstitutionalView: React.FC<Props> = ({ initialTab = 'sobre' }) => 
                   1. Escopo Fixo e Prazos Contratuais
                 </h3>
                 <p>
-                  Cada produto contratado possui sua lista exata de entregáveis descrita no catálogo. O prazo de entrega tem início imediato após a confirmação do briefing pelo cliente na plataforma.
+                  Cada produto contratado possui sua lista exata de entregáveis descrita no catálogo. O prazo de entrega tem início imediato após a confirmação do briefing e validação com o curador responsável no canal oficial.
                 </p>
               </div>
 
@@ -369,7 +369,7 @@ export const InstitutionalView: React.FC<Props> = ({ initialTab = 'sobre' }) => 
                   2. Rodadas de Ajuste e Revisão
                 </h3>
                 <p>
-                  Cada nível prevê uma quantidade contratual de rodadas de revisão (1 a 4 rodadas). Os ajustes devem ser solicitados via Área do Cliente dentro do prazo de até 7 dias corridos após a entrega do material.
+                  Cada nível prevê uma quantidade contratual de rodadas de revisão (1 a 4 rodadas). Os ajustes devem ser solicitados via WhatsApp ou canal de atendimento em até 7 dias corridos após a entrega do material.
                 </p>
               </div>
 

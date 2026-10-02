@@ -148,7 +148,7 @@ export const HeroSection: React.FC = () => {
             </div>
             <div className="flex items-center justify-center gap-2">
               <span className="w-2 h-2 rounded-full bg-[#FFD400] shadow-[0_0_8px_#FFD400]" />
-              <span>Entrega direta na plataforma com rodadas de ajuste</span>
+              <span>Contratação via WhatsApp com revisões garantidas</span>
             </div>
           </div>
 
