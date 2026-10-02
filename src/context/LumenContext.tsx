@@ -90,7 +90,7 @@ interface LumenContextType {
   approveOrderDelivery: (orderId: string) => void;
   
   // Client & Interaction actions
-  getClientProfile: (email: string) => ClientProfile | undefined;
+  getClientProfile: (email: string) => ClientProfile;
   updateClientProfile: (updated: ClientProfile) => void;
   addOrderInteraction: (orderId: string, message: { text: string; role?: 'client' | 'admin' | 'curator'; authorName?: string }) => void;
 }

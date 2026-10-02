@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useLumen } from '../context/LumenContext';
 import { Order, OrderStatus, DeliverableItem, InteractionMessage, ClientProfile } from '../types';
+import { ProjectProgress } from '../components/ProjectProgress';
 import {
   FileText,
   Clock,
@@ -92,7 +93,7 @@ export const CustomerPortalView: React.FC = () => {
   const clientProfile = getClientProfile(currentUserEmail);
 
   // Tabs inside portal
-  const [activeTab, setActiveTab] = useState<'projetos' | 'perfil' | 'interacoes' | 'financeiro'>('projetos');
+  const [activeTab, setActiveTab] = useState<'projetos' | 'cronograma' | 'perfil' | 'interacoes' | 'financeiro'>('projetos');
   
   // Strictly isolate orders:
   // If activeRole is 'admin', user can see all orders for management.
@@ -268,6 +269,18 @@ export const CustomerPortalView: React.FC = () => {
           >
             <Layers className="w-4 h-4" />
             <span>Projetos & Entregas ({displayOrders.length})</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('cronograma')}
+            className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 ${
+              activeTab === 'cronograma'
+                ? 'bg-[#F3F1EA] text-[#070A17] shadow-lg'
+                : 'text-[#98A1BC] hover:text-[#F3F1EA] hover:bg-white/5'
+            }`}
+          >
+            <Clock className="w-4 h-4 text-[#19D3F3]" />
+            <span>Cronograma & Timeline</span>
           </button>
 
           <button
@@ -630,6 +643,21 @@ export const CustomerPortalView: React.FC = () => {
               </div>
             )}
 
+          </div>
+        )}
+
+        {/* ========================================================================= */}
+        {/* TAB: CRONOGRAMA & TIMELINE DE ENTREGAS (PROJECT PROGRESS RECHARTS)        */}
+        {/* ========================================================================= */}
+        {activeTab === 'cronograma' && (
+          <div className="space-y-6">
+            <ProjectProgress
+              orders={displayOrders}
+              onSelectOrder={(orderId) => {
+                setSelectedOrderId(orderId);
+                setActiveTab('projetos');
+              }}
+            />
           </div>
         )}
 

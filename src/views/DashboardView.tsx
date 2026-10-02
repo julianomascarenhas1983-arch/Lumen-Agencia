@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useLumen } from '../context/LumenContext';
 import { Order, OrderStatus, DeliverableItem, InteractionMessage } from '../types';
+import { ProjectProgress } from '../components/ProjectProgress';
 import {
   Layers,
   Clock,
@@ -314,6 +315,14 @@ export const DashboardView: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* PROJECT PROGRESS VISUALIZATION (RECHARTS) */}
+        {displayOrders.length > 0 && (
+          <ProjectProgress
+            orders={displayOrders}
+            onSelectOrder={(orderId) => navigate('conta', { orderId })}
+          />
+        )}
 
         {/* 2. MAIN SPLIT: PRODUTOS CONTRATADOS & STATUS (LEFT) + FEED DE INTERAÇÕES (RIGHT) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
