@@ -1,10 +1,17 @@
 [build]
   publish = "dist"
   command = "npm run build"
+  functions = "netlify/functions"
 
 [[redirects]]
-  from = "/api/*"
-  to = "https://ais-pre-z23o7xy76vjl2musnlzj6c-648649066867.us-east1.run.app/api/:splat"
+  from = "/api/diagnostico"
+  to = "/.netlify/functions/diagnostico"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/diagnostico/*"
+  to = "/.netlify/functions/diagnostico"
   status = 200
   force = true
 

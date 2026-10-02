@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLumen } from '../context/LumenContext';
 import { DiagnosticoFormData, DiagnosticoResult, TierLevel } from '../types';
 import { createWhatsAppPlanUrl, LUMEN_WHATSAPP_DISPLAY } from '../utils/whatsapp';
+import { generateDiagnosisClient } from '../services/geminiClient';
 import {
   Sparkles,
   CheckCircle2,
@@ -204,53 +205,90 @@ export const DiagnosticoView: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const CLOUD_RUN_API_URL = 'https://ais-pre-z23o7xy76vjl2musnlzj6c-648649066867.us-east1.run.app/api/diagnostico';
-      
-      let res = await fetch('/api/diagnostico', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
+      const emailNorm = formData.contactEmail.trim().toLowerCase();
+      const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
-      // If static host returns 404 (e.g. Netlify before proxy update), seamlessly fallback to Cloud Run backend
-      if (res.status === 404) {
-        res = await fetch(CLOUD_RUN_API_URL, {
+      // 1. Check local client-side 24h rate limit first
+      try {
+        const cachedStr = localStorage.getItem('lumen_latest_diagnosis');
+        if (cachedStr) {
+          const cached = JSON.parse(cachedStr);
+          if (
+            cached?.formData?.contactEmail?.trim().toLowerCase() === emailNorm &&
+            cached?.result?.generatedAt
+          ) {
+            const elapsed = Date.now() - new Date(cached.result.generatedAt).getTime();
+            if (elapsed < ONE_DAY_MS) {
+              const remainingHours = Math.ceil((ONE_DAY_MS - elapsed) / (60 * 60 * 1000));
+              setRateLimitInfo({
+                message: `Você já gerou um diagnóstico gratuito para este e-mail nas últimas 24 horas (próxima liberação em ~${remainingHours}h).`,
+                existing: cached.result,
+              });
+              setResult(cached.result);
+              setIsLoading(false);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+              return;
+            }
+          }
+        }
+      } catch (err) {
+        // continue
+      }
+
+      let diagnosisResult: DiagnosticoResult | null = null;
+
+      // 2. Try backend API endpoint (/api/diagnostico)
+      try {
+        const res = await fetch('/api/diagnostico', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData),
         });
-      }
 
-      const data = await res.json();
-
-      if (res.status === 429) {
-        // Rate limit reached (1 diagnosis per email every 24h)
-        setRateLimitInfo({
-          message: data.message || 'Limite diário de 1 diagnóstico atingido para este e-mail.',
-          canRetryAt: data.canRetryAt,
-          existing: data.existingDiagnosis,
-        });
-        if (data.existingDiagnosis) {
-          setResult(data.existingDiagnosis);
-          localStorage.setItem(
-            'lumen_latest_diagnosis',
-            JSON.stringify({ formData, result: data.existingDiagnosis })
-          );
+        if (res.status === 429) {
+          const data = await res.json();
+          setRateLimitInfo({
+            message: data.message || 'Limite diário de 1 diagnóstico atingido para este e-mail.',
+            canRetryAt: data.canRetryAt,
+            existing: data.existingDiagnosis,
+          });
+          if (data.existingDiagnosis) {
+            setResult(data.existingDiagnosis);
+            localStorage.setItem(
+              'lumen_latest_diagnosis',
+              JSON.stringify({ formData, result: data.existingDiagnosis })
+            );
+          }
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          return;
         }
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        return;
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data && !data.error && data.notaGeral !== undefined) {
+            diagnosisResult = data;
+          }
+        }
+      } catch (fetchErr) {
+        console.warn('Backend fetch failed or not reachable, using direct AI engine fallback:', fetchErr);
       }
 
-      if (!res.ok || data.error) {
-        throw new Error(data.message || 'Falha ao processar o diagnóstico com a IA.');
+      // 3. Fallback: If backend is 404 (static hosting like Netlify/HostGator without server), run Gemini directly
+      if (!diagnosisResult) {
+        diagnosisResult = await generateDiagnosisClient(formData);
       }
 
-      setResult(data);
-      // Persist to local storage for future reference/briefing
+      if (!diagnosisResult) {
+        throw new Error('Não foi possível obter o resultado da IA.');
+      }
+
+      setResult(diagnosisResult);
+
+      // Persist to local storage
       try {
         localStorage.setItem(
           'lumen_latest_diagnosis',
-          JSON.stringify({ formData, result: data })
+          JSON.stringify({ formData, result: diagnosisResult })
         );
       } catch {
         // ignore
