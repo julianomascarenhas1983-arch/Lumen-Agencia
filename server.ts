@@ -21,125 +21,312 @@ const getGenAI = () => {
   return new GoogleGenAI({ apiKey });
 };
 
-// 1. Diagnóstico de Marketing em 60 segundos
-app.post('/api/diagnostico', async (req: Request, res: Response) => {
-  try {
-    const { businessName, segment, city, mainGoal, currentChannels, contactEmail } = req.body;
+// Diagnoses Cache and 24-hour Rate Limiting per email
+interface StoredDiagnosisRecord {
+  id: string;
+  email: string;
+  timestamp: number;
+  formData: any;
+  result: any;
+}
 
-    if (!businessName || !segment) {
-      return res.status(400).json({ error: 'Nome do negócio e segmento são obrigatórios.' });
-    }
+const diagnosesCache = new Map<string, StoredDiagnosisRecord>();
+const CACHE_FILE = path.join(process.cwd(), 'diagnoses_cache.json');
 
-    const ai = getGenAI();
-
-    if (ai) {
-      const prompt = `Você é o diretor de inteligência estratégica da Lumen, uma agência virtual de marketing e publicidade de alto padrão.
-Analise os seguintes dados deste negócio:
-- Nome do negócio: ${businessName}
-- Segmento: ${segment}
-- Cidade/Região: ${city || 'Brasil'}
-- Objetivo principal: ${mainGoal || 'Crescimento e visibilidade'}
-- Canais atuais: ${Array.isArray(currentChannels) ? currentChannels.join(', ') : 'Pouca presença digital'}
-
-Avalie com rigor publicitário e pragmatismo comercial. Devolva em JSON estrito com:
-1. overallScore (número inteiro de 35 a 95 representando maturidade geral de marketing)
-2. subscores: objeto com notas inteiras de 30 a 98 para:
-   - estrategia (clareza de posicionamento e metas)
-   - digital (canais, velocidade, atração)
-   - publicidade (impacto visual, estética e diferenciação)
-   - comunicacao (voz de marca, clareza e autoridade)
-3. strengths: exatamente 3 pontos fortes realistas ou diferenciais latentes para explorar
-4. opportunities: exatamente 3 oportunidades imediatas de mercado e crescimento
-5. suggestedSlogan: um slogan de alto impacto publicitário, moderno, sem clichês
-6. recommendedProducts: array com 1 ou 2 produtos recomendados do catálogo da Lumen, escolhendo estritamente entre:
-   - "diagnostico-plano-estrategico" (Diagnóstico e Plano Estratégico)
-   - "identidade-visual" (Identidade Visual & Branding)
-   - "pack-artes-redes-sociais" (Pack de Artes para Redes Sociais)
-   - "video-de-campanha" (Vídeo de Campanha & Audiovisual)
-   - "landing-page" (Landing Page de Alta Conversão)
-   - "lumen-continuo" (Lumen Contínuo)
-   com o nível sugerido ("essencial", "pro" ou "premium") e o motivo estratégico.
-
-Apenas JSON válido, sem crases markdown extras.`;
-
-      const modelsToTry = ['gemini-3.6-flash', 'gemini-flash-latest'];
-      let geminiSuccess = false;
-
-      for (const modelName of modelsToTry) {
-        if (geminiSuccess) break;
-        try {
-          const response = await ai.models.generateContent({
-            model: modelName,
-            contents: prompt,
-            config: {
-              responseMimeType: 'application/json',
-            },
-          });
-
-          const text = response.text?.trim() || '{}';
-          const parsed = JSON.parse(text);
-          if (parsed && parsed.overallScore) {
-            geminiSuccess = true;
-            return res.json({
-              ...parsed,
-              businessName,
-              segment,
-              generatedAt: new Date().toISOString(),
-              isAIGenerated: true,
-            });
-          }
-        } catch (genError: any) {
-          console.warn(`Model ${modelName} attempt failed (${genError.message || genError}), trying next...`);
-        }
+try {
+  if (fs.existsSync(CACHE_FILE)) {
+    const raw = fs.readFileSync(CACHE_FILE, 'utf-8');
+    const records: StoredDiagnosisRecord[] = JSON.parse(raw);
+    for (const r of records) {
+      if (r.email) {
+        diagnosesCache.set(r.email.toLowerCase(), r);
       }
     }
+  }
+} catch (err) {
+  console.warn('Could not load diagnoses cache:', err);
+}
 
-    // High quality deterministic fallback if no Gemini key or error
-    const channelsCount = Array.isArray(currentChannels) ? currentChannels.length : 1;
-    const baseScore = Math.min(88, Math.max(48, 52 + channelsCount * 8));
+const persistDiagnosesCache = () => {
+  try {
+    fs.writeFileSync(CACHE_FILE, JSON.stringify(Array.from(diagnosesCache.values())), 'utf-8');
+  } catch (err) {
+    console.warn('Could not persist diagnoses cache:', err);
+  }
+};
 
-    return res.json({
+const VALID_PRODUCT_SLUGS = [
+  'diagnostico-plano-estrategico',
+  'identidade-visual',
+  'pack-artes-redes-sociais',
+  'video-de-campanha',
+  'landing-page',
+  'lumen-continuo',
+];
+
+/**
+ * Server-side function that generates a tailored marketing diagnosis using Gemini API.
+ */
+async function generateDiagnosis(formData: {
+  businessName: string;
+  segment: string;
+  whatItDoes: string;
+  targetAudience?: string;
+  currentChannels: string[];
+  postingFrequency: string;
+  monthlyInvestment: string;
+  priceRange?: string;
+  mainGoal: string;
+  mainDifficulty: string;
+  city?: string;
+  contactEmail: string;
+}) {
+  const ai = getGenAI();
+  if (!ai) {
+    throw new Error('Chave da API Gemini não configurada no servidor.');
+  }
+
+  const prompt = `Você é um estrategista sênior de marketing da agência Lumen. Com base nos dados reais informados por um cliente potencial, produza um diagnóstico específico para o negócio dele — nunca genérico ou aplicável a qualquer empresa do mesmo segmento.
+
+Dados do negócio:
+- Nome: ${formData.businessName || 'Não informado'}
+- O que faz: ${formData.whatItDoes || 'Não informado'}
+- Segmento: ${formData.segment || 'Não informado'}
+- Público-alvo: ${formData.targetAudience?.trim() ? formData.targetAudience : 'Não especificado'}
+- Cidade/região: ${formData.city?.trim() ? formData.city : 'Não informada'}
+- Canais ativos: ${Array.isArray(formData.currentChannels) && formData.currentChannels.length > 0 ? formData.currentChannels.join(', ') : 'Nenhum canal ativo informado'}
+- Frequência de publicação/anúncio: ${formData.postingFrequency || 'Não informada'}
+- Investimento mensal atual: ${formData.monthlyInvestment || 'Não informado'}
+- Faixa de preço do produto/serviço: ${formData.priceRange?.trim() ? formData.priceRange : 'Não informada'}
+- Objetivo prioritário: ${formData.mainGoal || 'Crescimento geral'}
+- Maior dificuldade relatada: ${formData.mainDifficulty || 'Não informada'}
+
+Responda APENAS com um JSON no formato:
+{
+  "notaGeral": número de 0 a 100,
+  "notasPorPilar": {
+    "estrategico": número de 0 a 100,
+    "digital": número de 0 a 100,
+    "publicidade": número de 0 a 100,
+    "comunicacao": número de 0 a 100
+  },
+  "pontosFortes": [até 3 strings curtas, específicas ao que foi informado],
+  "oportunidades": [até 3 strings curtas, específicas, nunca genéricas],
+  "sloganSugerido": "string",
+  "produtoRecomendado": "slug de um produto do catálogo da Lumen",
+  "motivoRecomendacao": "string de 1 a 2 frases, citando algo que o cliente informou"
+}
+
+Regras: baseie cada nota e cada ponto no que foi efetivamente informado (frequência de postagem, investimento, dificuldade relatada etc.), não em suposições sobre o segmento. Se um dado estiver vazio, não invente — apenas não use esse dado na análise.
+O campo "produtoRecomendado" DEVE ser estritamente um destes slugs do catálogo da Lumen:
+- "diagnostico-plano-estrategico"
+- "identidade-visual"
+- "pack-artes-redes-sociais"
+- "video-de-campanha"
+- "landing-page"
+- "lumen-continuo"`;
+
+  const modelsToTry = ['gemini-3.8-flash', 'gemini-flash-latest'];
+  let lastError: any = null;
+
+  for (const model of modelsToTry) {
+    try {
+      const response = await ai.models.generateContent({
+        model,
+        contents: prompt,
+        config: {
+          responseMimeType: 'application/json',
+          temperature: 0.35,
+        },
+      });
+
+      const text = response.text?.trim() || '';
+      const parsed = JSON.parse(text);
+
+      // Validate schema strictly
+      if (
+        typeof parsed.notaGeral === 'number' &&
+        parsed.notasPorPilar &&
+        typeof parsed.notasPorPilar.estrategico === 'number' &&
+        typeof parsed.notasPorPilar.digital === 'number' &&
+        typeof parsed.notasPorPilar.publicidade === 'number' &&
+        typeof parsed.notasPorPilar.comunicacao === 'number' &&
+        Array.isArray(parsed.pontosFortes) &&
+        parsed.pontosFortes.length > 0 &&
+        Array.isArray(parsed.oportunidades) &&
+        parsed.oportunidades.length > 0 &&
+        typeof parsed.sloganSugerido === 'string' &&
+        typeof parsed.produtoRecomendado === 'string' &&
+        typeof parsed.motivoRecomendacao === 'string'
+      ) {
+        // Normalize recommended product slug
+        let matchedSlug = parsed.produtoRecomendado.trim().toLowerCase();
+        if (!VALID_PRODUCT_SLUGS.includes(matchedSlug)) {
+          const found = VALID_PRODUCT_SLUGS.find((s) => matchedSlug.includes(s) || s.includes(matchedSlug));
+          matchedSlug = found || 'diagnostico-plano-estrategico';
+        }
+
+        return {
+          notaGeral: Math.max(0, Math.min(100, Math.round(parsed.notaGeral))),
+          notasPorPilar: {
+            estrategico: Math.max(0, Math.min(100, Math.round(parsed.notasPorPilar.estrategico))),
+            digital: Math.max(0, Math.min(100, Math.round(parsed.notasPorPilar.digital))),
+            publicidade: Math.max(0, Math.min(100, Math.round(parsed.notasPorPilar.publicidade))),
+            comunicacao: Math.max(0, Math.min(100, Math.round(parsed.notasPorPilar.comunicacao))),
+          },
+          pontosFortes: parsed.pontosFortes.slice(0, 3).map((s: any) => String(s).trim()),
+          oportunidades: parsed.oportunidades.slice(0, 3).map((s: any) => String(s).trim()),
+          sloganSugerido: parsed.sloganSugerido.trim(),
+          produtoRecomendado: matchedSlug,
+          motivoRecomendacao: parsed.motivoRecomendacao.trim(),
+          businessName: formData.businessName,
+          segment: formData.segment,
+          whatItDoes: formData.whatItDoes,
+          contactEmail: formData.contactEmail,
+          generatedAt: new Date().toISOString(),
+          isAIGenerated: true,
+        };
+      }
+    } catch (err: any) {
+      lastError = err;
+      console.warn(`Model ${model} attempt failed:`, err?.message || err);
+    }
+  }
+
+  throw new Error(
+    lastError?.message || 'Falha ao processar resposta do modelo Gemini em formato JSON válido.'
+  );
+}
+
+// 1. Diagnóstico Gratuito com Gemini
+app.post('/api/diagnostico', async (req: Request, res: Response) => {
+  try {
+    const {
       businessName,
       segment,
-      overallScore: baseScore,
-      subscores: {
-        estrategia: Math.min(92, baseScore - 6),
-        digital: Math.min(95, baseScore + 4),
-        publicidade: Math.min(90, baseScore - 2),
-        comunicacao: Math.min(88, baseScore + 2),
-      },
-      strengths: [
-        `Relevância tangível no segmento de ${segment}, com potencial de liderança regional.`,
-        `Presença inicial em canais fundamentais que já geram reconhecimento de marca.`,
-        `Proposta de valor clara que pode ser amplificada com identidade publicitária rigorosa.`,
-      ],
-      opportunities: [
-        `Profissionalizar a narrativa e o tom de voz para justificar ticket médio mais elevado.`,
-        `Estruturar um funil de conversão contínuo para transformar visitantes esporádicos em clientes fiéis.`,
-        `Padronizar peças visuais e campanhas para romper a barreira da invisibilidade na concorrência.`,
-      ],
-      suggestedSlogan: `${businessName}: Onde a excelência em ${segment} ganha luz.`,
-      recommendedProducts: [
-        {
-          slug: 'diagnostico-plano-estrategico',
-          tier: 'pro',
-          title: 'Diagnóstico e Plano Estratégico (90 Dias)',
-          reason: `Para o mercado de ${segment}, um plano tático com metas claras evita dispersão de verba e foca nos canais de maior retorno.`,
-        },
-        {
-          slug: 'identidade-visual',
-          tier: 'essencial',
-          title: 'Identidade Visual & Branding',
-          reason: `Reforça a percepção de autoridade e diferenciação imediata frente aos competidores locais e digitais.`,
-        },
-      ],
-      generatedAt: new Date().toISOString(),
-      isAIGenerated: false,
+      whatItDoes,
+      targetAudience,
+      currentChannels,
+      postingFrequency,
+      monthlyInvestment,
+      priceRange,
+      mainGoal,
+      mainDifficulty,
+      city,
+      contactEmail,
+      lgpdConsent,
+    } = req.body;
+
+    // Validate mandatory fields from Step 1, Step 2 and Step 3
+    if (!businessName || !segment || !whatItDoes) {
+      return res.status(400).json({
+        error: 'validation_error',
+        message: 'Preencha os campos obrigatórios do Passo 1 (Nome, Segmento e O que o negócio vende/faz).',
+      });
+    }
+
+    if (!postingFrequency || !monthlyInvestment) {
+      return res.status(400).json({
+        error: 'validation_error',
+        message: 'Preencha os campos obrigatórios do Passo 2 (Frequência de postagem e Investimento mensal).',
+      });
+    }
+
+    if (!mainGoal || !mainDifficulty || !contactEmail || !lgpdConsent) {
+      return res.status(400).json({
+        error: 'validation_error',
+        message: 'Preencha os campos obrigatórios do Passo 3 (Objetivo, Dificuldade, E-mail e Consentimento LGPD).',
+      });
+    }
+
+    const emailNorm = String(contactEmail).trim().toLowerCase();
+
+    // Rate Limiting: 1 diagnóstico por e-mail a cada 24 horas
+    const existing = diagnosesCache.get(emailNorm);
+    const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+    const now = Date.now();
+
+    if (existing && now - existing.timestamp < ONE_DAY_MS && !req.query.force) {
+      const remainingHours = Math.ceil((ONE_DAY_MS - (now - existing.timestamp)) / (60 * 60 * 1000));
+      return res.status(429).json({
+        error: 'rate_limit',
+        message: `Você já gerou um diagnóstico gratuito para este e-mail nas últimas 24 horas. Para garantir a qualidade e disponibilidade para todos, limitamos a 1 análise por dia por e-mail (próxima liberação em ~${remainingHours}h).`,
+        existingDiagnosis: existing.result,
+        canRetryAt: new Date(existing.timestamp + ONE_DAY_MS).toISOString(),
+      });
+    }
+
+    // Call generateDiagnosis strictly through Gemini
+    const diagnosisResult = await generateDiagnosis({
+      businessName,
+      segment,
+      whatItDoes,
+      targetAudience,
+      currentChannels: Array.isArray(currentChannels) ? currentChannels : [],
+      postingFrequency,
+      monthlyInvestment,
+      priceRange,
+      mainGoal,
+      mainDifficulty,
+      city,
+      contactEmail: emailNorm,
     });
+
+    // Store in cache for rate-limiting and future reuse (e.g. project onboarding)
+    const record: StoredDiagnosisRecord = {
+      id: `diag-${Date.now()}`,
+      email: emailNorm,
+      timestamp: now,
+      formData: {
+        businessName,
+        segment,
+        whatItDoes,
+        targetAudience,
+        currentChannels,
+        postingFrequency,
+        monthlyInvestment,
+        priceRange,
+        mainGoal,
+        mainDifficulty,
+        city,
+        contactEmail: emailNorm,
+        lgpdConsent,
+      },
+      result: diagnosisResult,
+    };
+
+    diagnosesCache.set(emailNorm, record);
+    persistDiagnosesCache();
+
+    return res.json(diagnosisResult);
   } catch (error: any) {
-    console.error('Error in /api/diagnostico:', error);
-    res.status(500).json({ error: 'Erro ao processar diagnóstico.' });
+    console.error('Error generating diagnosis:', error);
+    // Explicit friendly error - never invent a fake diagnosis
+    return res.status(503).json({
+      error: 'ai_service_unavailable',
+      message:
+        'Não foi possível gerar seu diagnóstico estratégico com a inteligência artificial neste momento. Por favor, tente novamente em instantes.',
+    });
   }
+});
+
+// Endpoint to retrieve latest diagnosis by email
+app.get('/api/diagnostico/latest', (req: Request, res: Response) => {
+  const email = String(req.query.email || '').trim().toLowerCase();
+  if (!email) {
+    return res.status(400).json({ error: 'E-mail não fornecido.' });
+  }
+
+  const record = diagnosesCache.get(email);
+  if (!record) {
+    return res.status(404).json({ error: 'Nenhum diagnóstico encontrado para este e-mail.' });
+  }
+
+  return res.json({
+    result: record.result,
+    formData: record.formData,
+    timestamp: record.timestamp,
+  });
 });
 
 // 2. Recomendador de Produto por Necessidade do Cliente

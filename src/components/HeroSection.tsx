@@ -132,7 +132,7 @@ export const HeroSection: React.FC = () => {
               className="w-full sm:w-auto bg-[#0C1226] hover:bg-[#121a36] text-[#F3F1EA] border border-[rgba(246,196,83,0.3)] hover:border-[#F6C453] px-7 py-3.5 rounded-full text-sm font-semibold transition-all min-h-[48px] flex items-center justify-center gap-2 group shadow-[0_0_20px_rgba(246,196,83,0.1)]"
             >
               <Sparkles className="w-4 h-4 text-[#F6C453] group-hover:rotate-12 transition-transform" />
-              <span>Diagnóstico grátis em 60s</span>
+              <span>Diagnóstico gratuito</span>
             </button>
           </div>
 

@@ -163,7 +163,7 @@ export const Footer: React.FC = () => {
               <li>
                 <button onClick={() => navigate('diagnostico')} className="hover:text-[#F6C453] transition-colors flex items-center gap-1">
                   <Sparkles className="w-3 h-3 text-[#F6C453]" />
-                  Diagnóstico em 60s
+                  Diagnóstico Gratuito
                 </button>
               </li>
               <li>

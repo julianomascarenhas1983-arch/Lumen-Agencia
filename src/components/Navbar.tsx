@@ -217,7 +217,7 @@ export const Navbar: React.FC = () => {
               className="text-left py-2.5 px-3 rounded-lg text-sm text-[#F6C453] hover:bg-white/5 font-medium flex items-center justify-between"
             >
               <span className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4" /> Diagnóstico Grátis em 60s
+                <Sparkles className="w-4 h-4" /> Diagnóstico Gratuito
               </span>
               <span className="text-[10px] bg-[#F6C453]/20 px-2 py-0.5 rounded text-[#F6C453] font-bold">IA</span>
             </button>

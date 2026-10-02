@@ -64,35 +64,6 @@ export interface AdjustmentRequest {
   status: 'pending' | 'resolved';
 }
 
-export interface InteractionMessage {
-  id: string;
-  senderRole: 'client' | 'admin' | 'curator';
-  senderName: string;
-  senderAvatar?: string;
-  text: string;
-  timestamp: string;
-  attachments?: { name: string; url?: string; size?: string }[];
-}
-
-export interface ClientProfile {
-  id: string;
-  name: string;
-  email: string;
-  password?: string;
-  phone: string;
-  document: string;
-  companyName: string;
-  segment: string;
-  city?: string;
-  website?: string;
-  instagram?: string;
-  avatarUrl?: string;
-  joinedAt: string;
-  role?: 'client' | 'admin' | 'curator';
-  notesFromTeam?: string; // Private internal notes for agency users
-  accountManager?: string; // Assigned Lumen manager
-}
-
 export interface Order {
   id: string;
   createdAt: string;
@@ -111,39 +82,51 @@ export interface Order {
   revisionRoundsTotal: number;
   revisionRoundsUsed: number;
   adjustments: AdjustmentRequest[];
-  interactions?: InteractionMessage[];
-  receiptUrl?: string;
-  contractNumber?: string;
 }
 
-export interface DiagnosticoInput {
-  businessName: string;
-  segment: string;
-  city: string;
-  mainGoal: string;
-  currentChannels: string[];
-  contactEmail: string;
-  lgpdConsent: boolean;
+export interface DiagnosticoFormData {
+  // Passo 1: O negócio
+  businessName: string; // Nome do negócio ou marca (obrigatório)
+  segment: string; // Segmento de atuação (obrigatório)
+  whatItDoes: string; // O que o seu negócio vende ou faz, em uma frase? (obrigatório)
+  targetAudience?: string; // Para quem você vende? (público-alvo) (opcional)
+
+  // Passo 2: Situação atual
+  currentChannels: string[]; // Canais onde já tem presença
+  postingFrequency: string; // Com que frequência você publica ou anuncia hoje? (obrigatório)
+  monthlyInvestment: string; // Quanto investe em marketing hoje por mês? (obrigatório)
+  priceRange?: string; // Qual a faixa de preço do que você vende? (opcional)
+
+  // Passo 3: O objetivo e a dor
+  mainGoal: string; // Qual o objetivo prioritário (obrigatório)
+  mainDifficulty: string; // Qual é a sua maior dificuldade com marketing hoje? (obrigatório)
+  city?: string; // Cidade e estado (opcional)
+  contactEmail: string; // E-mail profissional (obrigatório)
+  lgpdConsent: boolean; // Consentimento LGPD (obrigatório)
 }
 
-export interface DiagnosticoResult {
+export interface DiagnosticoPillars {
+  estrategico: number;
+  digital: number;
+  publicidade: number;
+  comunicacao: number;
+}
+
+export interface DiagnosticoGeminiResponse {
+  notaGeral: number;
+  notasPorPilar: DiagnosticoPillars;
+  pontosFortes: string[];
+  oportunidades: string[];
+  sloganSugerido: string;
+  produtoRecomendado: string;
+  motivoRecomendacao: string;
+}
+
+export interface DiagnosticoResult extends DiagnosticoGeminiResponse {
   businessName: string;
   segment: string;
-  overallScore: number;
-  subscores: {
-    estrategia: number;
-    digital: number;
-    publicidade: number;
-    comunicacao: number;
-  };
-  strengths: string[];
-  opportunities: string[];
-  suggestedSlogan: string;
-  recommendedProducts: {
-    slug: string;
-    tier: TierLevel;
-    title: string;
-    reason: string;
-  }[];
+  whatItDoes: string;
   generatedAt: string;
+  isAIGenerated: boolean;
+  contactEmail?: string;
 }
