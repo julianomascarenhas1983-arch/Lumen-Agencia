@@ -4,13 +4,25 @@ import path from 'path';
 import fs from 'fs';
 import dotenv from 'dotenv';
 import { GoogleGenAI } from '@google/genai';
+import { Firestore } from '@google-cloud/firestore';
 
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+const port = parseInt(process.env.DEFAULT_APP_PORT || '3000', 10);
 
 app.use(express.json());
+
+// Enable CORS for all origins, allowing frontend on lumenmarketing.online and custom domains
+app.use((req: Request, res: Response, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
 
 // Initialize Gemini SDK if API key is present
 const getGenAI = () => {
@@ -21,7 +33,7 @@ const getGenAI = () => {
   return new GoogleGenAI({ apiKey });
 };
 
-// Diagnoses Cache and 24-hour Rate Limiting per email
+// Database Persistence Interface (Firestore with Memory/Disk Standby)
 interface StoredDiagnosisRecord {
   id: string;
   email: string;
@@ -30,30 +42,99 @@ interface StoredDiagnosisRecord {
   result: any;
 }
 
-const diagnosesCache = new Map<string, StoredDiagnosisRecord>();
-const CACHE_FILE = path.join(process.cwd(), 'diagnoses_cache.json');
+class DiagnosisDatabase {
+  private firestore: Firestore | null = null;
+  private isFirestoreActive = false;
+  private memoryCache = new Map<string, StoredDiagnosisRecord>();
+  private cacheFilePath = path.join(process.cwd(), 'diagnoses_cache.json');
 
-try {
-  if (fs.existsSync(CACHE_FILE)) {
-    const raw = fs.readFileSync(CACHE_FILE, 'utf-8');
-    const records: StoredDiagnosisRecord[] = JSON.parse(raw);
-    for (const r of records) {
-      if (r.email) {
-        diagnosesCache.set(r.email.toLowerCase(), r);
+  constructor() {
+    this.initLocal();
+    this.initFirestore();
+  }
+
+  private initLocal() {
+    try {
+      if (fs.existsSync(this.cacheFilePath)) {
+        const raw = fs.readFileSync(this.cacheFilePath, 'utf-8');
+        const records: StoredDiagnosisRecord[] = JSON.parse(raw);
+        for (const r of records) {
+          if (r.email) {
+            this.memoryCache.set(r.email.toLowerCase(), r);
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('Could not load diagnoses local cache:', err);
+    }
+  }
+
+  private async initFirestore() {
+    if (process.env.ENABLE_FIRESTORE !== 'true' && !process.env.FIREBASE_CONFIG) {
+      this.isFirestoreActive = false;
+      return;
+    }
+    try {
+      this.firestore = new Firestore();
+      const test = await Promise.race([
+        this.firestore.collection('_health').doc('ping').get(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 1500)),
+      ]);
+      this.isFirestoreActive = true;
+      console.log('✅ Google Cloud Firestore active for diagnosis persistence.');
+    } catch (err: any) {
+      this.isFirestoreActive = false;
+      console.log('ℹ️ Firestore standby mode (fast resilient storage active):', err?.message || err);
+    }
+  }
+
+  async getLatestByEmail(email: string): Promise<StoredDiagnosisRecord | null> {
+    const emailNorm = email.toLowerCase().trim();
+    if (this.isFirestoreActive && this.firestore) {
+      try {
+        const docId = emailNorm.replace(/[^a-z0-9_-]/g, '_');
+        const doc = await this.firestore.collection('diagnoses').doc(docId).get();
+        if (doc.exists) {
+          return doc.data() as StoredDiagnosisRecord;
+        }
+      } catch (err) {
+        console.warn('Firestore read error, using cache:', err);
+      }
+    }
+    return this.memoryCache.get(emailNorm) || null;
+  }
+
+  async save(record: StoredDiagnosisRecord): Promise<void> {
+    const emailNorm = record.email.toLowerCase().trim();
+    this.memoryCache.set(emailNorm, record);
+
+    // Save to disk
+    try {
+      fs.writeFileSync(this.cacheFilePath, JSON.stringify(Array.from(this.memoryCache.values())), 'utf-8');
+    } catch (err) {
+      console.warn('Could not save local diagnoses cache:', err);
+    }
+
+    // Save to Firestore if available
+    if (this.isFirestoreActive && this.firestore) {
+      try {
+        const docId = emailNorm.replace(/[^a-z0-9_-]/g, '_');
+        await this.firestore.collection('diagnoses').doc(docId).set(record);
+      } catch (err) {
+        console.warn('Firestore write error:', err);
       }
     }
   }
-} catch (err) {
-  console.warn('Could not load diagnoses cache:', err);
+
+  getStats() {
+    return {
+      firestoreActive: this.isFirestoreActive,
+      recordsCount: this.memoryCache.size,
+    };
+  }
 }
 
-const persistDiagnosesCache = () => {
-  try {
-    fs.writeFileSync(CACHE_FILE, JSON.stringify(Array.from(diagnosesCache.values())), 'utf-8');
-  } catch (err) {
-    console.warn('Could not persist diagnoses cache:', err);
-  }
-};
+const db = new DiagnosisDatabase();
 
 const VALID_PRODUCT_SLUGS = [
   'diagnostico-plano-estrategico',
@@ -126,7 +207,8 @@ O campo "produtoRecomendado" DEVE ser estritamente um destes slugs do catálogo 
 - "landing-page"
 - "lumen-continuo"`;
 
-  const modelsToTry = ['gemini-3.8-flash', 'gemini-flash-latest'];
+  // Resilient model cascade: fast and robust
+  const modelsToTry = ['gemini-3.1-flash-lite', 'gemini-flash-latest', 'gemini-3.8-flash'];
   let lastError: any = null;
 
   for (const model of modelsToTry) {
@@ -241,8 +323,8 @@ app.post('/api/diagnostico', async (req: Request, res: Response) => {
 
     const emailNorm = String(contactEmail).trim().toLowerCase();
 
-    // Rate Limiting: 1 diagnóstico por e-mail a cada 24 horas
-    const existing = diagnosesCache.get(emailNorm);
+    // Rate Limiting: 1 diagnóstico por e-mail a cada 24 horas (checked via Database)
+    const existing = await db.getLatestByEmail(emailNorm);
     const ONE_DAY_MS = 24 * 60 * 60 * 1000;
     const now = Date.now();
 
@@ -272,7 +354,7 @@ app.post('/api/diagnostico', async (req: Request, res: Response) => {
       contactEmail: emailNorm,
     });
 
-    // Store in cache for rate-limiting and future reuse (e.g. project onboarding)
+    // Store in database for rate-limiting and future reuse (e.g. project onboarding)
     const record: StoredDiagnosisRecord = {
       id: `diag-${Date.now()}`,
       email: emailNorm,
@@ -295,8 +377,7 @@ app.post('/api/diagnostico', async (req: Request, res: Response) => {
       result: diagnosisResult,
     };
 
-    diagnosesCache.set(emailNorm, record);
-    persistDiagnosesCache();
+    await db.save(record);
 
     return res.json(diagnosisResult);
   } catch (error: any) {
@@ -311,13 +392,13 @@ app.post('/api/diagnostico', async (req: Request, res: Response) => {
 });
 
 // Endpoint to retrieve latest diagnosis by email
-app.get('/api/diagnostico/latest', (req: Request, res: Response) => {
+app.get('/api/diagnostico/latest', async (req: Request, res: Response) => {
   const email = String(req.query.email || '').trim().toLowerCase();
   if (!email) {
     return res.status(400).json({ error: 'E-mail não fornecido.' });
   }
 
-  const record = diagnosesCache.get(email);
+  const record = await db.getLatestByEmail(email);
   if (!record) {
     return res.status(404).json({ error: 'Nenhum diagnóstico encontrado para este e-mail.' });
   }

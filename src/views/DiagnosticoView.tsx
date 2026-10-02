@@ -204,11 +204,22 @@ export const DiagnosticoView: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const res = await fetch('/api/diagnostico', {
+      const CLOUD_RUN_API_URL = 'https://ais-pre-z23o7xy76vjl2musnlzj6c-648649066867.us-east1.run.app/api/diagnostico';
+      
+      let res = await fetch('/api/diagnostico', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
+
+      // If static host returns 404 (e.g. Netlify before proxy update), seamlessly fallback to Cloud Run backend
+      if (res.status === 404) {
+        res = await fetch(CLOUD_RUN_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData),
+        });
+      }
 
       const data = await res.json();
 
