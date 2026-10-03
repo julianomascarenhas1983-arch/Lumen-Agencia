@@ -1,0 +1,15 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Allow existing static files, images, scripts, styles
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Route /api/diagnostico to the PHP handler
+  RewriteRule ^api/diagnostico/?$ api/diagnostico/index.php [L,QSA]
+
+  # SPA fallback to index.html
+  RewriteRule ^ index.html [L]
+</IfModule>

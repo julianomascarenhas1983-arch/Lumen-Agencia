@@ -280,8 +280,15 @@ export const DiagnosticoView: React.FC = () => {
           backendErrorMsg = data?.message || 'Dados inválidos ou incompletos no formulário.';
         } else if (res.ok && data && !data.error && data.notaGeral !== undefined) {
           diagnosisResult = data;
+        } else if (res.ok && !contentType.includes('application/json')) {
+          backendErrorMsg =
+            'O servidor retornou uma página HTML em vez de processar a API. Certifique-se de que o backend (PHP no HostGator ou Netlify Functions) está ativo e que a chave GEMINI_API_KEY foi adicionada no servidor.';
         } else {
-          backendErrorMsg = data?.message || (res.status === 404 ? 'Servidor de backend não encontrado (404).' : `Erro no servidor (${res.status}).`);
+          backendErrorMsg =
+            data?.message ||
+            (res.status === 404
+              ? 'Servidor de backend não encontrado (404).'
+              : `Erro ao processar diagnóstico no servidor (HTTP ${res.status}).`);
         }
       } catch (fetchErr: any) {
         console.warn('Backend fetch failed or not reachable, using direct AI engine fallback:', fetchErr);
