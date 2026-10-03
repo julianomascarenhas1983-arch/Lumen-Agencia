@@ -1,0 +1,31 @@
+[
+  {
+    "protocol": "LUM-20261003-9999",
+    "submittedAt": "2026-10-03T22:17:16.837Z",
+    "targetEmail": "atendimento@lumenmarketing.online",
+    "clientEmail": "atendimento@lumenmarketing.online",
+    "businessName": "Empório Gourmet Camaçari",
+    "formData": {
+      "businessName": "Empório Gourmet Camaçari",
+      "contactName": "Juliano Mascarenhas",
+      "segment": "Alimentos & Bebidas Especiais",
+      "whatItDoes": "Loja física e delivery de carnes nobres e rótulos selecionados",
+      "targetAudience": "Público A e B da região metropolitana",
+      "city": "Camaçari / BA",
+      "currentChannels": [
+        "Instagram",
+        "WhatsApp Comercial"
+      ],
+      "postingFrequency": "Às vezes (toda semana)",
+      "monthlyInvestment": "De R$ 500 a R$ 2.000",
+      "priceRange": "R$ 100 a R$ 500",
+      "mainGoal": "Aumentar a atração de clientes qualificados e vendas",
+      "mainDifficulty": "Levar clientes para a minha loja",
+      "urgency": "Imediato (próximos 15 a 30 dias)",
+      "contactEmail": "atendimento@lumenmarketing.online",
+      "contactPhone": "(71) 99999-9999",
+      "lgpdConsent": true
+    },
+    "summaryText": "Briefing de teste"
+  }
+]

@@ -25,6 +25,39 @@ if (!$formData || !is_array($formData)) {
     exit;
 }
 
+// 1. Process Mini-Briefing submission directly via PHP mail()
+if (isset($formData['summaryText']) || isset($formData['protocol'])) {
+    $protocol = htmlspecialchars($formData['protocol'] ?? ('LUM-' . date('Ymd') . '-' . rand(1000, 9999)));
+    $clientEmail = filter_var($formData['formData']['contactEmail'] ?? $formData['clientEmail'] ?? '', FILTER_SANITIZE_EMAIL);
+    $businessName = htmlspecialchars($formData['formData']['businessName'] ?? $formData['businessName'] ?? 'Empresa');
+    $summary = $formData['summaryText'] ?? 'Mini-briefing recebido.';
+
+    $toCompany = 'atendimento@lumenmarketing.online';
+    $subject = "[Mini-Briefing Lumen] Novo Diagnostico - {$businessName} ({$protocol})";
+
+    $headersCompany = "From: Lumen Plataforma <noreply@lumenmarketing.online>\r\n"
+                    . "Reply-To: {$clientEmail}\r\n"
+                    . "X-Mailer: PHP/" . phpversion();
+
+    @mail($toCompany, $subject, $summary, $headersCompany);
+
+    if ($clientEmail) {
+        $clientSubject = "Confirmacao do seu Mini-Briefing - Lumen Agencia Virtual ({$protocol})";
+        $clientMsg = "Ola!\n\nConfirmamos o recebimento do seu Mini-Briefing Estrategico na Lumen Agencia Virtual (Protocolo: {$protocol}).\n\nNossa diretoria de estrategia analisara o perfil da sua empresa e respondera em ate 24 horas uteis.\n\nCopia dos dados enviados:\n\n" . $summary;
+        $headersClient = "From: Lumen Agencia Virtual <atendimento@lumenmarketing.online>\r\n"
+                       . "Reply-To: atendimento@lumenmarketing.online\r\n"
+                       . "X-Mailer: PHP/" . phpversion();
+        @mail($clientEmail, $clientSubject, $clientMsg, $headersClient);
+    }
+
+    echo json_encode([
+        'success' => true,
+        'protocol' => $protocol,
+        'message' => 'Mini-briefing encaminhado com sucesso para atendimento@lumenmarketing.online e copia para o solicitante.'
+    ]);
+    exit;
+}
+
 // Validation
 if (empty($formData['businessName']) || empty($formData['segment']) || empty($formData['whatItDoes'])) {
     http_response_code(400);

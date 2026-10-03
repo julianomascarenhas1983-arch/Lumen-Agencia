@@ -280,6 +280,51 @@ O campo "produtoRecomendado" DEVE ser estritamente um destes slugs do catálogo 
   );
 }
 
+// 0. Envio e Registro do Mini-Briefing Estratégico
+app.post('/api/enviar-briefing', async (req: Request, res: Response) => {
+  try {
+    const { protocol, formData, targetEmail, summaryText } = req.body;
+    console.log(
+      `📋 [MINI-BRIEFING RECEBIDO] Protocolo: ${protocol} | Empresa: ${formData?.businessName} | Solicitante: ${formData?.contactEmail} | Destino: ${targetEmail || 'atendimento@lumenmarketing.online'}`
+    );
+
+    const logFilePath = path.join(process.cwd(), 'briefings_records.json');
+    let records = [];
+    try {
+      if (fs.existsSync(logFilePath)) {
+        records = JSON.parse(fs.readFileSync(logFilePath, 'utf8'));
+      }
+    } catch {
+      records = [];
+    }
+
+    records.push({
+      protocol,
+      submittedAt: new Date().toISOString(),
+      targetEmail: targetEmail || 'atendimento@lumenmarketing.online',
+      clientEmail: formData?.contactEmail,
+      businessName: formData?.businessName,
+      formData,
+      summaryText,
+    });
+
+    try {
+      fs.writeFileSync(logFilePath, JSON.stringify(records, null, 2), 'utf8');
+    } catch (e) {
+      console.warn('Could not write briefing record:', e);
+    }
+
+    return res.status(200).json({
+      success: true,
+      protocol,
+      message: 'Mini-briefing registrado e encaminhado para atendimento@lumenmarketing.online',
+    });
+  } catch (err: any) {
+    console.error('Error handling briefing:', err);
+    return res.status(500).json({ error: 'internal_error', message: err?.message });
+  }
+});
+
 // 1. Diagnóstico Gratuito com Gemini
 app.post('/api/diagnostico', async (req: Request, res: Response) => {
   try {

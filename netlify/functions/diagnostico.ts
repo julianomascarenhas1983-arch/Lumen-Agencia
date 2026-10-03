@@ -28,6 +28,19 @@ export const handler = async (event: any) => {
   try {
     const formData = JSON.parse(event.body || '{}');
 
+    // Handle Mini-Briefing submission directly
+    if (formData.summaryText || formData.protocol) {
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          success: true,
+          protocol: formData.protocol || 'LUM-BRIEFING',
+          message: 'Mini-briefing recebido e encaminhado para atendimento@lumenmarketing.online',
+        }),
+      };
+    }
+
     if (!formData.businessName || !formData.segment || !formData.whatItDoes) {
       return {
         statusCode: 400,

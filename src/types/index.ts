@@ -120,6 +120,7 @@ export interface Order {
 export interface DiagnosticoFormData {
   // Passo 1: O negócio
   businessName: string; // Nome do negócio ou marca (obrigatório)
+  contactName?: string; // Nome do responsável / solicitante
   segment: string; // Segmento de atuação (obrigatório)
   whatItDoes: string; // O que o seu negócio vende ou faz, em uma frase? (obrigatório)
   targetAudience?: string; // Para quem você vende? (público-alvo) (opcional)
@@ -133,9 +134,19 @@ export interface DiagnosticoFormData {
   // Passo 3: O objetivo e a dor
   mainGoal: string; // Qual o objetivo prioritário (obrigatório)
   mainDifficulty: string; // Qual é a sua maior dificuldade com marketing hoje? (obrigatório)
+  urgency?: string; // Prazo / urgência para implementação
   city?: string; // Cidade e estado (opcional)
   contactEmail: string; // E-mail profissional (obrigatório)
+  contactPhone?: string; // WhatsApp / Telefone
   lgpdConsent: boolean; // Consentimento LGPD (obrigatório)
+}
+
+export interface MiniBriefingSubmission {
+  protocol: string;
+  submittedAt: string;
+  formData: DiagnosticoFormData;
+  targetCompanyEmail: string;
+  clientEmail: string;
 }
 
 export interface DiagnosticoPillars {
