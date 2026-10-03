@@ -8,17 +8,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export default defineConfig(() => {
-  const geminiApiKey =
-    process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY || '';
-
   return {
     base: './',
     plugins: [react(), tailwindcss()],
-    define: {
-      'import.meta.env.VITE_GEMINI_API_KEY': JSON.stringify(geminiApiKey),
-      'process.env.VITE_GEMINI_API_KEY': JSON.stringify(geminiApiKey),
-      'process.env.GEMINI_API_KEY': JSON.stringify(geminiApiKey),
-    },
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),

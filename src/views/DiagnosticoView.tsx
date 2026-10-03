@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useLumen } from '../context/LumenContext';
 import { DiagnosticoFormData, DiagnosticoResult, TierLevel } from '../types';
 import { createWhatsAppPlanUrl, LUMEN_WHATSAPP_DISPLAY } from '../utils/whatsapp';
-import { generateDiagnosisClient } from '../services/geminiClient';
 import {
   Sparkles,
   CheckCircle2,
@@ -296,24 +295,13 @@ export const DiagnosticoView: React.FC = () => {
         return;
       }
 
-      // 3. Fallback: If backend is 404 (static hosting) or unavailable, run Gemini directly on client
       if (!diagnosisResult) {
-        try {
-          diagnosisResult = await generateDiagnosisClient(formData);
-        } catch (clientErr: any) {
-          console.error('Client Gemini fallback failed:', clientErr);
-          const finalError =
-            clientErr?.message ||
-            backendErrorMsg ||
-            'Não foi possível gerar a análise com a inteligência artificial neste momento. Por favor, tente novamente em instantes.';
-          setStepError(finalError);
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-          return;
-        }
-      }
-
-      if (!diagnosisResult) {
-        throw new Error('Não foi possível obter o resultado da IA.');
+        setStepError(
+          backendErrorMsg ||
+          'Não foi possível gerar a análise com a inteligência artificial neste momento. Por favor, tente novamente em instantes.'
+        );
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
       }
 
       setResult(diagnosisResult);
