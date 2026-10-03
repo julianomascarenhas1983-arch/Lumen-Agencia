@@ -9,6 +9,15 @@ const VALID_PRODUCT_SLUGS = [
   'lumen-continuo',
 ];
 
+export function getGeminiApiKey(): string {
+  const key =
+    (typeof import.meta !== 'undefined' && import.meta.env?.VITE_GEMINI_API_KEY) ||
+    (typeof process !== 'undefined' && process.env?.VITE_GEMINI_API_KEY) ||
+    (typeof process !== 'undefined' && process.env?.GEMINI_API_KEY) ||
+    '';
+  return key && key !== 'MY_GEMINI_API_KEY' ? String(key).trim() : '';
+}
+
 export async function generateDiagnosisClient(formData: {
   businessName: string;
   segment: string;
@@ -23,13 +32,12 @@ export async function generateDiagnosisClient(formData: {
   city?: string;
   contactEmail: string;
 }) {
-  const apiKey =
-    (import.meta.env.VITE_GEMINI_API_KEY as string) ||
-    (process.env.GEMINI_API_KEY as string) ||
-    '';
+  const apiKey = getGeminiApiKey();
 
-  if (!apiKey || apiKey === 'MY_GEMINI_API_KEY') {
-    throw new Error('Chave da API Gemini não configurada.');
+  if (!apiKey) {
+    throw new Error(
+      'A chave da API Gemini não foi configurada (VITE_GEMINI_API_KEY). Por favor, configure a variável de ambiente com sua chave do Gemini.'
+    );
   }
 
   const ai = new GoogleGenAI({ apiKey });

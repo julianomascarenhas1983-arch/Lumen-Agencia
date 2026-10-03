@@ -518,7 +518,7 @@ Curadoria executiva realizada por Ana Beatriz Mello.`,
                     .filter((c) =>
                       c.name.toLowerCase().includes(clientSearch.toLowerCase()) ||
                       c.companyName.toLowerCase().includes(clientSearch.toLowerCase()) ||
-                      c.document.includes(clientSearch)
+                      (c.document || '').includes(clientSearch)
                     )
                     .map((cli) => {
                       const isSelected = cli.id === selectedClientId;

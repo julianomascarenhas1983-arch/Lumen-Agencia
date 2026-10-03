@@ -236,6 +236,8 @@ export const DiagnosticoView: React.FC = () => {
       }
 
       let diagnosisResult: DiagnosticoResult | null = null;
+      let backendErrorMsg: string | null = null;
+      let isValidationError = false;
 
       // 2. Try backend API endpoint (/api/diagnostico)
       try {
@@ -245,14 +247,24 @@ export const DiagnosticoView: React.FC = () => {
           body: JSON.stringify(formData),
         });
 
+        const contentType = res.headers.get('content-type') || '';
+        let data: any = null;
+        if (contentType.includes('application/json')) {
+          try {
+            data = await res.json();
+          } catch {
+            // non-json response body
+          }
+        }
+
+        // Handle Rate Limit (429)
         if (res.status === 429) {
-          const data = await res.json();
           setRateLimitInfo({
-            message: data.message || 'Limite diário de 1 diagnóstico atingido para este e-mail.',
-            canRetryAt: data.canRetryAt,
-            existing: data.existingDiagnosis,
+            message: data?.message || 'Limite diário de 1 diagnóstico atingido para este e-mail.',
+            canRetryAt: data?.canRetryAt,
+            existing: data?.existingDiagnosis,
           });
-          if (data.existingDiagnosis) {
+          if (data?.existingDiagnosis) {
             setResult(data.existingDiagnosis);
             localStorage.setItem(
               'lumen_latest_diagnosis',
@@ -263,19 +275,41 @@ export const DiagnosticoView: React.FC = () => {
           return;
         }
 
-        if (res.ok) {
-          const data = await res.json();
-          if (data && !data.error && data.notaGeral !== undefined) {
-            diagnosisResult = data;
-          }
+        // Handle Validation Error (400)
+        if (res.status === 400) {
+          isValidationError = true;
+          backendErrorMsg = data?.message || 'Dados inválidos ou incompletos no formulário.';
+        } else if (res.ok && data && !data.error && data.notaGeral !== undefined) {
+          diagnosisResult = data;
+        } else {
+          backendErrorMsg = data?.message || (res.status === 404 ? 'Servidor de backend não encontrado (404).' : `Erro no servidor (${res.status}).`);
         }
-      } catch (fetchErr) {
+      } catch (fetchErr: any) {
         console.warn('Backend fetch failed or not reachable, using direct AI engine fallback:', fetchErr);
+        backendErrorMsg = fetchErr?.message || 'Falha de conexão com o servidor de backend.';
       }
 
-      // 3. Fallback: If backend is 404 (static hosting like Netlify/HostGator without server), run Gemini directly
+      // If backend explicitly rejected due to validation, display the validation message immediately
+      if (isValidationError && backendErrorMsg) {
+        setStepError(backendErrorMsg);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+
+      // 3. Fallback: If backend is 404 (static hosting) or unavailable, run Gemini directly on client
       if (!diagnosisResult) {
-        diagnosisResult = await generateDiagnosisClient(formData);
+        try {
+          diagnosisResult = await generateDiagnosisClient(formData);
+        } catch (clientErr: any) {
+          console.error('Client Gemini fallback failed:', clientErr);
+          const finalError =
+            clientErr?.message ||
+            backendErrorMsg ||
+            'Não foi possível gerar a análise com a inteligência artificial neste momento. Por favor, tente novamente em instantes.';
+          setStepError(finalError);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          return;
+        }
       }
 
       if (!diagnosisResult) {
@@ -297,6 +331,7 @@ export const DiagnosticoView: React.FC = () => {
     } catch (err: any) {
       console.error('Diagnosis generation failed:', err);
       setStepError(
+        err?.message ||
         'Não foi possível gerar a análise com a inteligência artificial neste momento. Por favor, tente novamente em instantes.'
       );
     } finally {

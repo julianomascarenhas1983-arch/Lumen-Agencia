@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Product, ProductTier, TierLevel, INITIAL_CATALOG } from '../data/catalog';
-import { Order, OrderStatus, DeliverableItem, CustomerData, PaymentData } from '../types';
+import { Order, OrderStatus, DeliverableItem, CustomerData, PaymentData, ClientProfile, InteractionMessage } from '../types';
 import { SEED_ORDERS } from '../data/seedOrders';
+import { INITIAL_CLIENT_PROFILES } from '../data/seedClients';
 
 export type AppView =
   | 'home'
@@ -9,6 +10,8 @@ export type AppView =
   | 'produto-detalhe'
   | 'diagnostico'
   | 'admin'
+  | 'dashboard'
+  | 'conta'
   | 'sobre'
   | 'metodo'
   | 'contato'
@@ -45,6 +48,18 @@ interface LumenContextType {
   requestAdjustment: (orderId: string, feedback: string) => boolean;
   approveOrderDelivery: (orderId: string) => void;
   setCurrentUserEmail: (email: string) => void;
+  // Admin & Dashboard helpers
+  clients: ClientProfile[];
+  activeRole: 'client' | 'admin';
+  setActiveRole: (role: 'client' | 'admin') => void;
+  currentUser: ClientProfile | null;
+  getClientProfile: (idOrEmail: string) => ClientProfile | undefined;
+  updateClientProfile: (profileOrId: any, updates?: any) => void;
+  addOrderInteraction: (orderId: string, message: any) => void;
+  login: (email: string, pass?: string) => { success: boolean; error?: string };
+  register: (data: any) => { success: boolean; error?: string };
+  logout: () => void;
+  redirectAfterLogin: () => void;
 }
 
 const LumenContext = createContext<LumenContextType | undefined>(undefined);
@@ -329,6 +344,110 @@ export const LumenProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     );
   };
 
+  const [clients, setClients] = useState<ClientProfile[]>(() => {
+    try {
+      const saved = localStorage.getItem('lumen_clients_v2');
+      if (saved) return JSON.parse(saved);
+    } catch {
+      // fallback
+    }
+    return INITIAL_CLIENT_PROFILES;
+  });
+
+  const [activeRole, setActiveRole] = useState<'client' | 'admin'>('admin');
+  const [currentUser, setCurrentUser] = useState<ClientProfile | null>(() => {
+    return INITIAL_CLIENT_PROFILES[0] || null;
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('lumen_clients_v2', JSON.stringify(clients));
+    } catch {
+      // ignore
+    }
+  }, [clients]);
+
+  const getClientProfile = (idOrEmail: string) => {
+    return clients.find(
+      (c) => c.id === idOrEmail || c.email.toLowerCase() === idOrEmail.toLowerCase()
+    );
+  };
+
+  const updateClientProfile = (profileOrId: any, updates?: any) => {
+    setClients((prev) =>
+      prev.map((c) => {
+        if (typeof profileOrId === 'object' && profileOrId.id === c.id) {
+          return { ...c, ...profileOrId };
+        }
+        if (typeof profileOrId === 'string' && c.id === profileOrId) {
+          return { ...c, ...(updates || {}) };
+        }
+        return c;
+      })
+    );
+  };
+
+  const addOrderInteraction = (orderId: string, message: any) => {
+    setOrders((prev) =>
+      prev.map((o) => {
+        if (o.id !== orderId) return o;
+        const msg: InteractionMessage = {
+          id: `msg-${Date.now()}`,
+          timestamp: new Date().toISOString(),
+          sender: message.sender || 'agency',
+          senderName: message.senderName || 'Lumen',
+          text: message.text || '',
+          ...message,
+        };
+        return {
+          ...o,
+          interactions: [...(o.interactions || []), msg],
+        };
+      })
+    );
+  };
+
+  const login = (email: string, pass?: string) => {
+    const found = clients.find((c) => c.email.toLowerCase() === email.toLowerCase());
+    if (found) {
+      setCurrentUser(found);
+      setCurrentUserEmail(found.email);
+      setActiveRole(found.role || 'client');
+      return { success: true };
+    }
+    return { success: false, error: 'Usuário não encontrado.' };
+  };
+
+  const register = (data: any) => {
+    const newProfile: ClientProfile = {
+      id: `cli-${Date.now()}`,
+      name: data.name,
+      email: data.email,
+      companyName: data.companyName || data.name,
+      segment: data.segment || 'Serviços',
+      phone: data.phone || '',
+      joinedAt: new Date().toISOString(),
+      role: 'client',
+      document: data.document || '',
+    };
+    setClients((prev) => [...prev, newProfile]);
+    setCurrentUser(newProfile);
+    setCurrentUserEmail(newProfile.email);
+    setActiveRole('client');
+    return { success: true };
+  };
+
+  const logout = () => {
+    setCurrentUser(null);
+    setCurrentUserEmail('');
+    setActiveRole('client');
+    navigate('home');
+  };
+
+  const redirectAfterLogin = () => {
+    navigate('dashboard');
+  };
+
   return (
     <LumenContext.Provider
       value={{
@@ -353,6 +472,17 @@ export const LumenProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         requestAdjustment,
         approveOrderDelivery,
         setCurrentUserEmail,
+        clients,
+        activeRole,
+        setActiveRole,
+        currentUser,
+        getClientProfile,
+        updateClientProfile,
+        addOrderInteraction,
+        login,
+        register,
+        logout,
+        redirectAfterLogin,
       }}
     >
       {children}

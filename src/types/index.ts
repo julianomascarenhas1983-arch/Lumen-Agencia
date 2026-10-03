@@ -64,8 +64,40 @@ export interface AdjustmentRequest {
   status: 'pending' | 'resolved';
 }
 
+export interface InteractionMessage {
+  id: string;
+  sender?: 'client' | 'agency';
+  senderRole?: string;
+  senderName: string;
+  text: string;
+  timestamp: string;
+  attachments?: string[];
+}
+
+export interface ClientProfile {
+  id: string;
+  name: string;
+  email: string;
+  password?: string;
+  role?: 'client' | 'admin';
+  companyName: string;
+  segment: string;
+  phone: string;
+  document?: string;
+  city?: string;
+  website?: string;
+  instagram?: string;
+  joinedAt: string;
+  accountManager?: string;
+  notesFromTeam?: string;
+  notes?: string;
+  tier?: string;
+}
+
 export interface Order {
   id: string;
+  contractNumber?: string;
+  receiptUrl?: string;
   createdAt: string;
   productSlug: string;
   tierLevel: TierLevel;
@@ -82,6 +114,7 @@ export interface Order {
   revisionRoundsTotal: number;
   revisionRoundsUsed: number;
   adjustments: AdjustmentRequest[];
+  interactions?: InteractionMessage[];
 }
 
 export interface DiagnosticoFormData {

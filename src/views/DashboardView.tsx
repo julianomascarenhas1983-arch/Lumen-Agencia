@@ -151,7 +151,7 @@ export const DashboardView: React.FC = () => {
     addOrderInteraction(selectedFeedOrder.id, {
       text: quickMessageText.trim(),
       role: activeRole,
-      authorName: activeRole === 'client' ? clientProfile.name : 'Curadoria Lumen',
+      authorName: activeRole === 'client' ? (clientProfile?.name || 'Cliente') : 'Curadoria Lumen',
     });
     setQuickMessageText('');
   };
