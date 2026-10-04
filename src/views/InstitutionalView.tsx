@@ -214,11 +214,13 @@ export const InstitutionalView: React.FC<Props> = ({ initialTab = 'sobre' }) => 
                 <div className="space-y-3 text-xs">
                   <div className="flex items-center gap-3 text-[#F3F1EA]">
                     <Mail className="w-4 h-4 text-[#F6C453]" />
-                    <span>contato@lumen.ag</span>
+                    <a href="mailto:atendimento@lumenmarketing.online" className="hover:text-[#F6C453] transition-colors">
+                      atendimento@lumenmarketing.online
+                    </a>
                   </div>
                   <div className="flex items-center gap-3 text-[#F3F1EA]">
                     <Shield className="w-4 h-4 text-[#19D3F3]" />
-                    <span>Encarregado de Dados (DPO): dpo@lumen.ag</span>
+                    <span>Encarregado de Dados (DPO): dpo@lumenmarketing.online</span>
                   </div>
                 </div>
 

@@ -217,7 +217,7 @@ export const Footer: React.FC = () => {
                 </button>
               </li>
               <li className="pt-2 text-[11px] text-[#98A1BC]/70">
-                Canal do DPO: <span className="text-[#F3F1EA]">privacidade@lumen.ag</span>
+                Canal do DPO: <span className="text-[#F3F1EA]">privacidade@lumenmarketing.online</span>
               </li>
             </ul>
           </div>

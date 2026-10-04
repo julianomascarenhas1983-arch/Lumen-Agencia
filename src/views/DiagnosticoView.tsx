@@ -85,6 +85,7 @@ export const DiagnosticoView: React.FC = () => {
 
   const [stepError, setStepError] = useState('');
   const [copiedProtocol, setCopiedProtocol] = useState(false);
+  const [needsActivation, setNeedsActivation] = useState(false);
 
   // Auto-save form draft
   useEffect(() => {
@@ -229,7 +230,10 @@ export const DiagnosticoView: React.FC = () => {
       const protocol = generateBriefingProtocol();
 
       // Submit email to company and client
-      await submitBriefingEmail(formData, protocol);
+      const res = await submitBriefingEmail(formData, protocol);
+      if (res.needsActivation) {
+        setNeedsActivation(true);
+      }
 
       const submission: MiniBriefingSubmission = {
         protocol,
@@ -345,6 +349,19 @@ export const DiagnosticoView: React.FC = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Alerta de Ativação Inicial FormSubmit se pendente */}
+              {needsActivation && (
+                <div className="mt-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-xs text-left flex items-start gap-3 animate-fadeIn">
+                  <AlertCircle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <strong className="block text-amber-300 font-semibold">Ativação inicial do formulário pendente:</strong>
+                    <span className="text-[#F3F1EA]/80 leading-relaxed block">
+                      O serviço FormSubmit enviou um e-mail de ativação inicial para <strong>{LUMEN_COMPANY_EMAIL}</strong>. Basta abrir esse e-mail e clicar em <strong>"Activate Form"</strong> (é necessário apenas uma única vez) para que todos os envios automáticos caiam diretamente na sua caixa de entrada.
+                    </span>
+                  </div>
+                </div>
+              )}
 
               {/* Ações Imediatas */}
               <div className="mt-8 flex flex-wrap items-center justify-center gap-3">

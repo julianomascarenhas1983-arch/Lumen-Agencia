@@ -70,12 +70,54 @@ export function createWhatsAppBriefingUrl(formData: DiagnosticoFormData, protoco
   return `https://wa.me/${LUMEN_WHATSAPP_NUMBER}?text=${text}`;
 }
 
-export async function submitBriefingEmail(formData: DiagnosticoFormData, protocol: string): Promise<{ success: boolean; message?: string }> {
-  const summaryText = formatBriefingSummaryText(formData, protocol);
+export interface SubmitBriefingResult {
+  success: boolean;
+  needsActivation?: boolean;
+  message?: string;
+}
 
-  // 1. Try local/backend route if available
+export async function submitBriefingEmail(formData: DiagnosticoFormData, protocol: string): Promise<SubmitBriefingResult> {
+  const summaryText = formatBriefingSummaryText(formData, protocol);
+  let needsActivation = false;
+
+  // 1. Submit to Netlify Forms (native if deployed on Netlify)
   try {
-    const localRes = await fetch('/api/enviar-briefing', {
+    const encodeForm = (data: Record<string, string>) =>
+      Object.keys(data)
+        .map((key) => encodeURIComponent(key) + '=' + encodeURIComponent(data[key]))
+        .join('&');
+
+    await fetch('/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: encodeForm({
+        'form-name': 'mini-briefing',
+        protocol,
+        empresa: formData.businessName,
+        responsavel: formData.contactName || '',
+        email_solicitante: formData.contactEmail,
+        whatsapp: formData.contactPhone || '',
+        segmento: formData.segment,
+        o_que_faz: formData.whatItDoes,
+        publico_alvo: formData.targetAudience || '',
+        cidade_estado: formData.city || '',
+        canais_atuais: formData.currentChannels?.join(', ') || '',
+        frequencia_postagens: formData.postingFrequency,
+        investimento_mensal: formData.monthlyInvestment,
+        faixa_preco_ticket: formData.priceRange || '',
+        objetivo_prioritario: formData.mainGoal,
+        maior_dificuldade: formData.mainDifficulty,
+        urgencia_prazo: formData.urgency || '',
+        resumo_completo: summaryText,
+      }),
+    });
+  } catch {
+    // Continue
+  }
+
+  // 2. Submit to local Express backend (if running)
+  try {
+    await fetch('/api/enviar-briefing', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -85,14 +127,26 @@ export async function submitBriefingEmail(formData: DiagnosticoFormData, protoco
         summaryText,
       }),
     });
-    if (localRes.ok) {
-      console.log('Briefing logged to local backend.');
-    }
-  } catch (err) {
-    // Continue with public zero-config dispatch
+  } catch {
+    // Continue
   }
 
-  // 2. Dispatch via FormSubmit AJAX service (sends to atendimento@lumenmarketing.online AND autoresponse copy to client)
+  // 3. Submit to HostGator PHP backend (if on Apache / cPanel)
+  try {
+    await fetch('/api/diagnostico/index.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        protocol,
+        formData,
+        summaryText,
+      }),
+    });
+  } catch {
+    // Continue
+  }
+
+  // 4. Submit via FormSubmit AJAX service
   try {
     const payload = {
       _subject: `[Mini-Briefing Lumen] Novo Diagnóstico - ${formData.businessName} (${protocol})`,
@@ -128,13 +182,13 @@ export async function submitBriefingEmail(formData: DiagnosticoFormData, protoco
       body: JSON.stringify(payload),
     });
 
-    if (res.ok) {
-      return { success: true };
+    const data = await res.json();
+    if (data?.message && typeof data.message === 'string' && data.message.includes('Activation')) {
+      needsActivation = true;
     }
   } catch (err) {
-    console.warn('FormSubmit external dispatch warning, falling back to local protocol:', err);
+    console.warn('FormSubmit dispatch warning:', err);
   }
 
-  // Fallback: Always return success with the protocol since mailto & client copy are ready
-  return { success: true };
+  return { success: true, needsActivation };
 }
