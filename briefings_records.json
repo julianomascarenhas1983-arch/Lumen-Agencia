@@ -27,5 +27,33 @@
       "lgpdConsent": true
     },
     "summaryText": "Briefing de teste"
+  },
+  {
+    "protocol": "LUM-261005-1583",
+    "submittedAt": "2026-10-05T22:06:26.383Z",
+    "targetEmail": "atendimento@lumenmarketing.online",
+    "clientEmail": "julianomask@gmail.com",
+    "businessName": "Aurora Saúde Integrativa",
+    "formData": {
+      "businessName": "Aurora Saúde Integrativa",
+      "contactName": "Dra. Camila",
+      "segment": "Clínica Médica",
+      "whatItDoes": "Atendimento integrativo e medicina preventiva",
+      "targetAudience": "Pacientes de 30 a 65 anos",
+      "city": "Camaçari / BA",
+      "currentChannels": [
+        "Instagram",
+        "WhatsApp Comercial"
+      ],
+      "postingFrequency": "Às vezes (toda semana)",
+      "monthlyInvestment": "De R$ 500 a R$ 2.000",
+      "priceRange": "R$ 200 a R$ 1.000",
+      "mainGoal": "Aumentar a atração de clientes qualificados e vendas",
+      "mainDifficulty": "Levar clientes para a minha clínica",
+      "urgency": "Imediato (próximos 15 a 30 dias)",
+      "contactEmail": "julianomask@gmail.com",
+      "contactPhone": "(71) 99999-9999",
+      "lgpdConsent": true
+    }
   }
 ]

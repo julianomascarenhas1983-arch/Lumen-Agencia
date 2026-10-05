@@ -1,3 +1,5 @@
-/api/diagnostico  /.netlify/functions/diagnostico  200
-/api/*            /.netlify/functions/:splat       200
-/*                /index.html                     200
+/api/briefing         /.netlify/functions/briefing     200
+/api/enviar-briefing  /.netlify/functions/briefing     200
+/api/diagnostico      /.netlify/functions/diagnostico  200
+/api/*                /.netlify/functions/:splat       200
+/*                    /index.html                      200

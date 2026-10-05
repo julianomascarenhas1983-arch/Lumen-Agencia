@@ -132,8 +132,9 @@ export async function submitBriefingEmail(formData: DiagnosticoFormData, protoco
   }
 
   // 3. Submit to HostGator PHP backend (if on Apache / cPanel)
+  let phpSent = false;
   try {
-    await fetch('/api/diagnostico/index.php', {
+    const phpRes = await fetch('/api/enviar-briefing.php', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -142,18 +143,38 @@ export async function submitBriefingEmail(formData: DiagnosticoFormData, protoco
         summaryText,
       }),
     });
+    if (phpRes.ok) {
+      phpSent = true;
+    }
   } catch {
     // Continue
   }
 
-  // 4. Submit via FormSubmit AJAX service
+  if (!phpSent) {
+    try {
+      await fetch('/api/diagnostico/index.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          protocol,
+          formData,
+          summaryText,
+        }),
+      });
+    } catch {
+      // Continue
+    }
+  }
+
+  // 4. Submit via FormSubmit AJAX service (fallback)
   try {
     const payload = {
+      _from: 'Atendimento Lumen',
       _subject: `[Mini-Briefing Lumen] Novo Diagnóstico - ${formData.businessName} (${protocol})`,
       _replyto: formData.contactEmail,
       _cc: formData.contactEmail,
       _template: 'box',
-      _autoresponse: `Olá, ${formData.contactName || formData.businessName}!\n\nRecebemos com sucesso o seu Mini-Briefing Estratégico (Protocolo: ${protocol}).\n\nNossa equipe de diretores e estrategistas da Lumen Agência Virtual já iniciou a análise do seu segmento e desafios. Entraremos em contato pelo seu e-mail (${formData.contactEmail})${formData.contactPhone ? ` ou WhatsApp (${formData.contactPhone})` : ''} em até 24 horas úteis.\n\nAtenciosamente,\nEquipe Lumen Agência Virtual\natendimento@lumenmarketing.online`,
+      _autoresponse: `Olá, ${formData.contactName || formData.businessName}!\n\nConfirmamos o recebimento com sucesso do seu Mini-Briefing Estratégico na Lumen Agência Virtual (Protocolo: ${protocol}).\n\nNossa equipe de estratégia e curadoria já iniciou o estudo do seu segmento e desafios. Entraremos em contato pelo seu e-mail (${formData.contactEmail})${formData.contactPhone ? ` ou WhatsApp (${formData.contactPhone})` : ''} em até 24 horas úteis.\n\nAtenciosamente,\nAtendimento Lumen\natendimento@lumenmarketing.online`,
       protocolo: protocol,
       empresa: formData.businessName,
       responsavel: formData.contactName || 'Não informado',

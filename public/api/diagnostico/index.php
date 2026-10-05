@@ -30,30 +30,41 @@ if (isset($formData['summaryText']) || isset($formData['protocol'])) {
     $protocol = htmlspecialchars($formData['protocol'] ?? ('LUM-' . date('Ymd') . '-' . rand(1000, 9999)));
     $clientEmail = filter_var($formData['formData']['contactEmail'] ?? $formData['clientEmail'] ?? '', FILTER_SANITIZE_EMAIL);
     $businessName = htmlspecialchars($formData['formData']['businessName'] ?? $formData['businessName'] ?? 'Empresa');
+    $contactName = htmlspecialchars($formData['formData']['contactName'] ?? 'Responsável');
     $summary = $formData['summaryText'] ?? 'Mini-briefing recebido.';
 
     $toCompany = 'atendimento@lumenmarketing.online';
-    $subject = "[Mini-Briefing Lumen] Novo Diagnostico - {$businessName} ({$protocol})";
+    $senderName = 'Atendimento Lumen';
 
-    $headersCompany = "From: Lumen Plataforma <noreply@lumenmarketing.online>\r\n"
-                    . "Reply-To: {$clientEmail}\r\n"
-                    . "X-Mailer: PHP/" . phpversion();
+    function encMime($str) {
+        return '=?UTF-8?B?' . base64_encode($str) . '?=';
+    }
 
-    @mail($toCompany, $subject, $summary, $headersCompany);
+    $subjectCompany = encMime("[Novo Mini-Briefing] " . $businessName . " (" . $protocol . ")");
+    $headersCompany = "From: " . encMime($senderName) . " <" . $toCompany . ">\r\n"
+                    . "Reply-To: " . ($clientEmail ? $clientEmail : $toCompany) . "\r\n"
+                    . "MIME-Version: 1.0\r\n"
+                    . "Content-Type: text/plain; charset=UTF-8\r\n"
+                    . "X-Mailer: Lumen PHP Mailer 2.0\r\n";
+
+    @mail($toCompany, $subjectCompany, $summary, $headersCompany);
 
     if ($clientEmail) {
-        $clientSubject = "Confirmacao do seu Mini-Briefing - Lumen Agencia Virtual ({$protocol})";
-        $clientMsg = "Ola!\n\nConfirmamos o recebimento do seu Mini-Briefing Estrategico na Lumen Agencia Virtual (Protocolo: {$protocol}).\n\nNossa diretoria de estrategia analisara o perfil da sua empresa e respondera em ate 24 horas uteis.\n\nCopia dos dados enviados:\n\n" . $summary;
-        $headersClient = "From: Lumen Agencia Virtual <atendimento@lumenmarketing.online>\r\n"
-                       . "Reply-To: atendimento@lumenmarketing.online\r\n"
-                       . "X-Mailer: PHP/" . phpversion();
-        @mail($clientEmail, $clientSubject, $clientMsg, $headersClient);
+        $subjectClient = encMime("Confirmação de Recebimento - Mini-Briefing Lumen (" . $protocol . ")");
+        $clientMsg = "Olá, " . $contactName . "!\n\nConfirmamos o recebimento com sucesso do seu Mini-Briefing Estratégico na Lumen Agência Virtual (Protocolo: " . $protocol . ").\n\nNossa equipe de estratégia e curadoria já iniciou o estudo do seu segmento e desafios. Entraremos em contato em até 24 horas úteis com o direcionamento personalizado para " . $businessName . ".\n\nCópia dos dados enviados:\n\n" . $summary . "\n\nAtenciosamente,\nAtendimento Lumen\natendimento@lumenmarketing.online";
+        $headersClient = "From: " . encMime($senderName) . " <" . $toCompany . ">\r\n"
+                       . "Reply-To: " . encMime($senderName) . " <" . $toCompany . ">\r\n"
+                       . "MIME-Version: 1.0\r\n"
+                       . "Content-Type: text/plain; charset=UTF-8\r\n"
+                       . "X-Mailer: Lumen PHP Mailer 2.0\r\n";
+        @mail($clientEmail, $subjectClient, $clientMsg, $headersClient);
     }
 
     echo json_encode([
         'success' => true,
         'protocol' => $protocol,
-        'message' => 'Mini-briefing encaminhado com sucesso para atendimento@lumenmarketing.online e copia para o solicitante.'
+        'sender' => $senderName . ' <' . $toCompany . '>',
+        'message' => 'Mini-briefing encaminhado com sucesso com a máscara Atendimento Lumen.'
     ]);
     exit;
 }
