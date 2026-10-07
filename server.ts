@@ -5,7 +5,6 @@ import fs from 'fs';
 import dotenv from 'dotenv';
 import { GoogleGenAI } from '@google/genai';
 import { Firestore } from '@google-cloud/firestore';
-import { sendBriefingEmails } from './src/server/resendService';
 
 dotenv.config();
 
@@ -23,6 +22,34 @@ app.use((req: Request, res: Response, next) => {
     return res.sendStatus(200);
   }
   next();
+});
+
+// Geo detection endpoint (Netlify/Cloudflare/Headers)
+app.get('/api/geo', (req: Request, res: Response) => {
+  const nfGeo = req.headers['x-nf-geo'] as string;
+  const cfCountry = req.headers['cf-ipcountry'] as string;
+  const xCountry = req.headers['x-country-code'] as string;
+  let country = 'BR';
+
+  if (cfCountry && typeof cfCountry === 'string' && cfCountry.length === 2) {
+    country = cfCountry.toUpperCase();
+  } else if (xCountry && typeof xCountry === 'string' && xCountry.length === 2) {
+    country = xCountry.toUpperCase();
+  } else if (nfGeo) {
+    try {
+      const decoded = Buffer.from(nfGeo, 'base64').toString('utf-8');
+      const parsed = JSON.parse(decoded);
+      if (parsed?.country?.code) {
+        country = parsed.country.code;
+      }
+    } catch {}
+  }
+
+  res.json({
+    country,
+    isBrazil: country === 'BR',
+    suggestedLang: country === 'BR' ? 'pt' : 'en',
+  });
 });
 
 // Initialize Gemini SDK if API key is present
@@ -281,35 +308,14 @@ O campo "produtoRecomendado" DEVE ser estritamente um destes slugs do catálogo 
   );
 }
 
-// 0. Envio e Registro do Mini-Briefing Estratégico com Resend
-const handleBriefing = async (req: Request, res: Response) => {
+// 0. Envio e Registro do Mini-Briefing Estratégico
+app.post('/api/enviar-briefing', async (req: Request, res: Response) => {
   try {
-    const { protocol: receivedProtocol, formData, summaryText } = req.body;
-    const f = formData || req.body;
-
-    if (!f.businessName || !f.segment || !f.whatItDoes || !f.contactEmail) {
-      return res.status(400).json({
-        error: 'validation_error',
-        message: 'Campos obrigatórios incompletos (Nome, Segmento, Descrição e E-mail).',
-      });
-    }
-
-    // Generate protocol if not provided: LUM-YYMMDD-XXXX
-    let protocol = receivedProtocol;
-    if (!protocol || typeof protocol !== 'string') {
-      const now = new Date();
-      const yy = String(now.getFullYear()).slice(-2);
-      const mm = String(now.getMonth() + 1).padStart(2, '0');
-      const dd = String(now.getDate()).padStart(2, '0');
-      const rand = Math.floor(1000 + Math.random() * 9000);
-      protocol = `LUM-${yy}${mm}${dd}-${rand}`;
-    }
-
+    const { protocol, formData, targetEmail, summaryText } = req.body;
     console.log(
-      `📋 [MINI-BRIEFING BACKEND] Protocolo: ${protocol} | Empresa: ${f.businessName} | Solicitante: ${f.contactEmail}`
+      `📋 [MINI-BRIEFING RECEBIDO] Protocolo: ${protocol} | Empresa: ${formData?.businessName} | Solicitante: ${formData?.contactEmail} | Destino: ${targetEmail || 'atendimento@lumenmarketing.online'}`
     );
 
-    // Save record to local JSON file
     const logFilePath = path.join(process.cwd(), 'briefings_records.json');
     let records = [];
     try {
@@ -323,10 +329,10 @@ const handleBriefing = async (req: Request, res: Response) => {
     records.push({
       protocol,
       submittedAt: new Date().toISOString(),
-      targetEmail: 'atendimento@lumenmarketing.online',
-      clientEmail: f.contactEmail,
-      businessName: f.businessName,
-      formData: f,
+      targetEmail: targetEmail || 'atendimento@lumenmarketing.online',
+      clientEmail: formData?.contactEmail,
+      businessName: formData?.businessName,
+      formData,
       summaryText,
     });
 
@@ -336,24 +342,16 @@ const handleBriefing = async (req: Request, res: Response) => {
       console.warn('Could not write briefing record:', e);
     }
 
-    // Dispatch emails via Resend
-    const emailRes = await sendBriefingEmails(f, protocol);
-
     return res.status(200).json({
       success: true,
       protocol,
-      clientSent: emailRes.clientSent,
-      teamSent: emailRes.teamSent,
-      message: emailRes.message || 'Mini-briefing processado e registrado com sucesso.',
+      message: 'Mini-briefing registrado e encaminhado para atendimento@lumenmarketing.online',
     });
   } catch (err: any) {
     console.error('Error handling briefing:', err);
     return res.status(500).json({ error: 'internal_error', message: err?.message });
   }
-};
-
-app.post('/api/briefing', handleBriefing);
-app.post('/api/enviar-briefing', handleBriefing);
+});
 
 // 1. Diagnóstico Gratuito com Gemini
 app.post('/api/diagnostico', async (req: Request, res: Response) => {

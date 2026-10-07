@@ -4,7 +4,7 @@ import { PILLARS } from '../data/catalog';
 import { ArrowRight, Clock, ShieldCheck, CheckCircle2 } from 'lucide-react';
 
 export const CatalogVitrine: React.FC = () => {
-  const { products, navigate } = useLumen();
+  const { products, navigate, language, formatPrice, t } = useLumen();
 
   return (
     <section className="py-20 md:py-28 bg-[#070A17] border-b border-[rgba(243,241,234,0.1)]">
@@ -14,13 +14,17 @@ export const CatalogVitrine: React.FC = () => {
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
           <div className="max-w-2xl">
             <div className="font-mono text-xs uppercase tracking-widest text-[#F6C453] mb-3">
-              02 // Vitrine de Soluções
+              02 // {language === 'en' ? 'Turnkey Solution Showcase' : 'Vitrine de Soluções'}
             </div>
             <h2 className="font-heading text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-[#F3F1EA]">
-              Produtos de marketing com preço fixo e prazo contratual.
+              {language === 'en'
+                ? 'Marketing deliverables with fixed pricing and guaranteed SLAs.'
+                : 'Produtos de marketing com preço fixo e prazo contratual.'}
             </h2>
             <p className="mt-4 text-base text-[#98A1BC]">
-              Sem reuniões intermináveis de orçamento. Escolha o serviço, selecione o nível ideal para o momento do seu negócio e inicie a produção imediatamente.
+              {language === 'en'
+                ? 'No endless scoping calls or murky retainers. Choose your deliverable, pick the ideal tier for your business stage, and begin execution immediately.'
+                : 'Sem reuniões intermináveis de orçamento. Escolha o serviço, selecione o nível ideal para o momento do seu negócio e inicie a produção imediatamente.'}
             </p>
           </div>
 
@@ -28,7 +32,7 @@ export const CatalogVitrine: React.FC = () => {
             onClick={() => navigate('produtos')}
             className="self-start md:self-end text-sm font-semibold text-[#F6C453] hover:text-[#ffd875] flex items-center gap-2 border-b border-[#F6C453]/40 pb-1"
           >
-            <span>Ver tabela comparativa completa</span>
+            <span>{language === 'en' ? 'View complete comparison table' : 'Ver tabela comparativa completa'}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>
@@ -37,9 +41,18 @@ export const CatalogVitrine: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {products.map((product, idx) => {
             const pillar = PILLARS[product.pillar];
+            const title = language === 'en' && product.titleEn ? product.titleEn : product.title;
+            const shortDescription = language === 'en' && product.shortDescriptionEn ? product.shortDescriptionEn : product.shortDescription;
+            const pillarName = language === 'en' && pillar.nameEn ? pillar.nameEn : pillar.name;
+            const badge = language === 'en' && product.badgeEn ? product.badgeEn : product.badge;
+            const deliverables = language === 'en' && product.tiers.essencial.deliverablesEn
+              ? product.tiers.essencial.deliverablesEn
+              : product.tiers.essencial.deliverables;
+
             // Compute lowest price tier
-            const startingPrice = Math.min(
-              ...Object.values(product.tiers).map((t) => t.price)
+            const startingPriceBRL = Math.min(...Object.values(product.tiers).map((t) => t.price));
+            const startingPriceUSD = Math.min(
+              ...Object.values(product.tiers).map((t) => t.priceUSD || Math.round(t.price / 5))
             );
             const fastestDelivery = Math.min(
               ...Object.values(product.tiers).map((t) => t.deliveryDays)
@@ -58,39 +71,39 @@ export const CatalogVitrine: React.FC = () => {
                         className="font-mono uppercase px-2 py-0.5 rounded border border-current text-[11px]"
                         style={{ color: pillar.colorToken }}
                       >
-                        {pillar.name}
+                        {pillarName}
                       </span>
                       <span className="text-[#98A1BC]/60 tracking-wider">
                         #SVC-0{idx + 1}
                       </span>
                     </div>
 
-                    {product.badge ? (
+                    {badge ? (
                       <span className="text-[10px] font-bold uppercase tracking-wider bg-[#F6C453]/15 text-[#F6C453] px-2 py-0.5 rounded border border-[#F6C453]/30">
-                        {product.badge}
+                        {badge}
                       </span>
                     ) : (
                       <span className="text-[10px] font-mono text-[#19D3F3]/70">
-                        GEMINI 3.6 READY
+                        STUDIO CERTIFIED
                       </span>
                     )}
                   </div>
 
                   {/* Title & Description */}
                   <h3 className="font-heading text-xl font-bold text-[#F3F1EA] group-hover:text-[#F6C453] transition-colors mb-2.5">
-                    {product.title}
+                    {title}
                   </h3>
                   <p className="text-sm text-[#98A1BC] line-clamp-3 mb-6">
-                    {product.shortDescription}
+                    {shortDescription}
                   </p>
 
                   {/* Sample deliverables */}
                   <div className="space-y-2 mb-6 pt-4 border-t border-[rgba(243,241,234,0.08)]">
                     <div className="text-[10px] uppercase font-mono tracking-wider text-[#98A1BC] font-semibold mb-2 flex items-center justify-between">
-                      <span>Entregáveis do nível inicial:</span>
-                      <span className="text-[#19D3F3] text-[9px]">CURADORIA SÊNIOR</span>
+                      <span>{language === 'en' ? 'Initial tier deliverables:' : 'Entregáveis do nível inicial:'}</span>
+                      <span className="text-[#19D3F3] text-[9px]">{language === 'en' ? 'SENIOR CURATION' : 'CURADORIA SÊNIOR'}</span>
                     </div>
-                    {product.tiers.essencial.deliverables.slice(0, 2).map((del, i) => (
+                    {deliverables.slice(0, 2).map((del, i) => (
                       <div key={i} className="flex items-start gap-2 text-xs text-[#F3F1EA]">
                         <CheckCircle2 className="w-3.5 h-3.5 text-[#F6C453] shrink-0 mt-0.5" />
                         <span className="line-clamp-1">{del}</span>
@@ -103,18 +116,20 @@ export const CatalogVitrine: React.FC = () => {
                 <div className="pt-6 border-t border-[rgba(243,241,234,0.1)]">
                   <div className="flex items-baseline justify-between mb-4">
                     <div>
-                      <span className="text-[10px] font-mono uppercase tracking-wider text-[#98A1BC] block">Preço Tabelado</span>
+                      <span className="text-[10px] font-mono uppercase tracking-wider text-[#98A1BC] block">
+                        {language === 'en' ? 'Starting at' : 'Preço Tabelado'}
+                      </span>
                       <span className="font-heading text-2xl font-extrabold text-[#F3F1EA]">
-                        R$ {startingPrice.toLocaleString('pt-BR')}
+                        {formatPrice(startingPriceBRL, startingPriceUSD)}
                         {product.slug === 'lumen-continuo' && (
-                          <span className="text-xs font-normal text-[#98A1BC]">/mês</span>
+                          <span className="text-xs font-normal text-[#98A1BC]">{language === 'en' ? '/mo' : '/mês'}</span>
                         )}
                       </span>
                     </div>
 
                     <div className="flex items-center gap-1.5 text-xs font-mono text-[#98A1BC] bg-[#050813] px-2 py-1 rounded border border-white/5">
                       <Clock className="w-3.5 h-3.5 text-[#19D3F3]" />
-                      <span>SLA {fastestDelivery}d</span>
+                      <span>{language === 'en' ? `${fastestDelivery}d turnaround` : `SLA ${fastestDelivery}d`}</span>
                     </div>
                   </div>
 
@@ -122,7 +137,7 @@ export const CatalogVitrine: React.FC = () => {
                     onClick={() => navigate('produto-detalhe', { slug: product.slug, tier: 'pro' })}
                     className="w-full bg-white/5 hover:bg-[#FF3B30] text-[#F3F1EA] py-3 rounded-lg text-xs font-bold tracking-wide transition-all border border-white/10 hover:border-transparent flex items-center justify-center gap-2 group-hover:bg-[#FF3B30] min-h-[44px] shadow-sm hover:shadow-[0_0_20px_rgba(255,59,48,0.3)]"
                   >
-                    <span>Escolher plano e contratar</span>
+                    <span>{language === 'en' ? 'Select tier & order' : 'Escolher plano e contratar'}</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>

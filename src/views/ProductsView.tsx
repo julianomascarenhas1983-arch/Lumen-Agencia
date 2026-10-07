@@ -4,7 +4,7 @@ import { PILLARS, PillarId } from '../data/catalog';
 import { Sparkles, ArrowRight, Clock, CheckCircle2, Search, SlidersHorizontal, Loader2 } from 'lucide-react';
 
 export const ProductsView: React.FC = () => {
-  const { products, navigate } = useLumen();
+  const { products, navigate, language, formatPrice, t } = useLumen();
   const [selectedPillar, setSelectedPillar] = useState<PillarId | 'todos'>('todos');
   const [userQuery, setUserQuery] = useState('');
   const [isRecommending, setIsRecommending] = useState(false);
@@ -29,7 +29,7 @@ export const ProductsView: React.FC = () => {
       const response = await fetch('/api/recomendar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: userQuery }),
+        body: JSON.stringify({ query: userQuery, lang: language }),
       });
       const data = await response.json();
       setRecommendation(data);
@@ -47,13 +47,17 @@ export const ProductsView: React.FC = () => {
         {/* Header */}
         <div className="max-w-3xl mb-12">
           <div className="font-mono text-xs uppercase tracking-widest text-[#F6C453] mb-3">
-            CATÁLOGO ABERTO // TABELA DE SERVIÇOS
+            {language === 'en' ? 'OPEN CATALOG // SERVICE MATRIX' : 'CATÁLOGO ABERTO // TABELA DE SERVIÇOS'}
           </div>
           <h1 className="font-heading text-4xl sm:text-5xl font-extrabold text-[#F3F1EA] tracking-tight">
-            Soluções com preço fixo, escopo fechado e garantia de entrega.
+            {language === 'en'
+              ? 'Fixed-price deliverables, transparent scope, and guaranteed delivery.'
+              : 'Soluções com preço fixo, escopo fechado e garantia de entrega.'}
           </h1>
           <p className="mt-4 text-base sm:text-lg text-[#98A1BC]">
-            Escolha o produto, configure o nível adequado para a maturidade do seu negócio e comece a produção hoje mesmo.
+            {language === 'en'
+              ? 'Select your service, choose the ideal tier for your business growth stage, and launch production today.'
+              : 'Escolha o produto, configure o nível adequado para a maturidade do seu negócio e comece a produção hoje mesmo.'}
           </p>
         </div>
 
@@ -62,11 +66,13 @@ export const ProductsView: React.FC = () => {
           <div className="flex items-center gap-2 mb-3">
             <Sparkles className="w-4 h-4 text-[#F6C453]" />
             <h3 className="font-heading text-sm uppercase tracking-wider text-[#F6C453] font-bold">
-              Recomendador Inteligente da Lumen
+              {language === 'en' ? 'Lumen Smart Recommender' : 'Recomendador Inteligente da Lumen'}
             </h3>
           </div>
           <p className="text-xs text-[#98A1BC] mb-4">
-            Em dúvida sobre qual serviço contratar? Digite seu objetivo em poucas palavras e nossa IA indicará o produto e nível ideais.
+            {language === 'en'
+              ? 'Not sure which service fits your immediate goals? Describe your objective in a few words and our system will identify the optimal product and tier.'
+              : 'Em dúvida sobre qual serviço contratar? Digite seu objetivo em poucas palavras e nossa IA indicará o produto e nível ideais.'}
           </p>
 
           <form onSubmit={handleRecommend} className="flex flex-col sm:flex-row gap-3">
@@ -75,7 +81,11 @@ export const ProductsView: React.FC = () => {
                 type="text"
                 value={userQuery}
                 onChange={(e) => setUserQuery(e.target.value)}
-                placeholder="Ex.: Preciso criar a marca do meu novo consultório e ter templates prontos para o Instagram..."
+                placeholder={
+                  language === 'en'
+                    ? 'E.g., I need a luxury visual identity and ready-to-use Instagram templates for my new boutique clinic...'
+                    : 'Ex.: Preciso criar a marca do meu novo consultório e ter templates prontos para o Instagram...'
+                }
                 className="w-full bg-[#070A17] border border-[rgba(243,241,234,0.15)] rounded-xl px-4 py-3 text-sm text-[#F3F1EA] placeholder-[#98A1BC]/50 focus:border-[#F6C453] transition-colors min-h-[44px]"
               />
             </div>
@@ -87,12 +97,12 @@ export const ProductsView: React.FC = () => {
               {isRecommending ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Analisando...</span>
+                  <span>{language === 'en' ? 'Analyzing...' : 'Analisando...'}</span>
                 </>
               ) : (
                 <>
                   <Sparkles className="w-4 h-4" />
-                  <span>Recomendar produto</span>
+                  <span>{language === 'en' ? 'Recommend Product' : 'Recomendar produto'}</span>
                 </>
               )}
             </button>
@@ -104,7 +114,10 @@ export const ProductsView: React.FC = () => {
               <div>
                 <div className="flex items-center gap-2 text-xs text-[#F6C453] font-semibold mb-1">
                   <CheckCircle2 className="w-4 h-4" />
-                  <span>Sugestão: {recommendation.productTitle} (Nível {recommendation.tier.toUpperCase()})</span>
+                  <span>
+                    {language === 'en' ? 'Recommendation:' : 'Sugestão:'} {recommendation.productTitle} (
+                    {recommendation.tier.toUpperCase()})
+                  </span>
                 </div>
                 <p className="text-xs text-[#98A1BC]">{recommendation.justification}</p>
               </div>
@@ -118,7 +131,7 @@ export const ProductsView: React.FC = () => {
                 }
                 className="bg-[#FF3B30] hover:bg-[#e0342a] text-[#F3F1EA] px-4 py-2 rounded-lg text-xs font-bold shrink-0 flex items-center gap-1.5 transition-colors"
               >
-                <span>Ver este produto</span>
+                <span>{language === 'en' ? 'View This Service' : 'Ver este produto'}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -135,12 +148,14 @@ export const ProductsView: React.FC = () => {
                 : 'bg-transparent text-[#98A1BC] border-[rgba(243,241,234,0.12)] hover:border-[rgba(243,241,234,0.3)]'
             }`}
           >
-            Todos os produtos ({products.length})
+            {language === 'en' ? `All Services (${products.length})` : `Todos os produtos (${products.length})`}
           </button>
 
           {(Object.keys(PILLARS) as PillarId[]).map((key) => {
             const pillar = PILLARS[key];
             const isSelected = selectedPillar === key;
+            const pillarName = language === 'en' && pillar.nameEn ? pillar.nameEn : pillar.name;
+
             return (
               <button
                 key={pillar.id}
@@ -156,7 +171,7 @@ export const ProductsView: React.FC = () => {
                   className="w-2 h-2 rounded-full"
                   style={{ backgroundColor: pillar.colorToken }}
                 />
-                <span>{pillar.name}</span>
+                <span>{pillarName}</span>
               </button>
             );
           })}
@@ -166,8 +181,18 @@ export const ProductsView: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProducts.map((product) => {
             const pillar = PILLARS[product.pillar];
-            const startingPrice = Math.min(...Object.values(product.tiers).map((t) => t.price));
+            const title = language === 'en' && product.titleEn ? product.titleEn : product.title;
+            const shortDescription = language === 'en' && product.shortDescriptionEn ? product.shortDescriptionEn : product.shortDescription;
+            const pillarName = language === 'en' && pillar.nameEn ? pillar.nameEn : pillar.name;
+            const badge = language === 'en' && product.badgeEn ? product.badgeEn : product.badge;
+
+            const startingPriceBRL = Math.min(...Object.values(product.tiers).map((t) => t.price));
+            const startingPriceUSD = Math.min(...Object.values(product.tiers).map((t) => t.priceUSD || Math.round(t.price / 5)));
             const tiersList = Object.values(product.tiers);
+
+            const proDeliverables = language === 'en' && product.tiers.pro.deliverablesEn
+              ? product.tiers.pro.deliverablesEn
+              : product.tiers.pro.deliverables;
 
             return (
               <div
@@ -180,38 +205,43 @@ export const ProductsView: React.FC = () => {
                       className="text-[11px] font-mono uppercase px-2 py-0.5 rounded border border-current"
                       style={{ color: pillar.colorToken }}
                     >
-                      {pillar.name}
+                      {pillarName}
                     </span>
-                    {product.badge && (
+                    {badge && (
                       <span className="text-[10px] font-bold uppercase tracking-wider bg-[#F6C453]/15 text-[#F6C453] px-2 py-0.5 rounded">
-                        {product.badge}
+                        {badge}
                       </span>
                     )}
                   </div>
 
                   <h3 className="font-heading text-xl font-bold text-[#F3F1EA] group-hover:text-[#F6C453] transition-colors mb-2">
-                    {product.title}
+                    {title}
                   </h3>
                   <p className="text-xs text-[#98A1BC] mb-5 leading-relaxed">
-                    {product.shortDescription}
+                    {shortDescription}
                   </p>
 
                   {/* Tier pricing preview pills */}
                   <div className="grid grid-cols-3 gap-1.5 mb-6 bg-[#070A17] p-2 rounded-lg border border-[rgba(243,241,234,0.06)] text-center">
-                    {tiersList.map((t) => (
-                      <div key={t.level} className="p-1">
-                        <span className="text-[10px] uppercase text-[#98A1BC] block">{t.name.split(' ')[0]}</span>
-                        <span className="text-xs font-bold text-[#F3F1EA]">
-                          R${t.price}
-                        </span>
-                      </div>
-                    ))}
+                    {tiersList.map((t) => {
+                      const tierName = language === 'en' && t.nameEn ? t.nameEn.split(' ')[0] : t.name.split(' ')[0];
+                      return (
+                        <div key={t.level} className="p-1">
+                          <span className="text-[10px] uppercase text-[#98A1BC] block">{tierName}</span>
+                          <span className="text-xs font-bold text-[#F3F1EA]">
+                            {formatPrice(t.price, t.priceUSD)}
+                          </span>
+                        </div>
+                      );
+                    })}
                   </div>
 
                   {/* Deliverables snippet */}
                   <div className="space-y-1.5 mb-6 text-xs text-[#F3F1EA]">
-                    <div className="text-[10px] font-mono uppercase text-[#98A1BC]">Entregáveis inclusos:</div>
-                    {product.tiers.pro.deliverables.slice(0, 3).map((item, idx) => (
+                    <div className="text-[10px] font-mono uppercase text-[#98A1BC]">
+                      {language === 'en' ? 'Included deliverables:' : 'Entregáveis inclusos:'}
+                    </div>
+                    {proDeliverables.slice(0, 3).map((item, idx) => (
                       <div key={idx} className="flex items-start gap-2">
                         <CheckCircle2 className="w-3.5 h-3.5 text-[#F6C453] shrink-0 mt-0.5" />
                         <span className="text-xs line-clamp-1">{item}</span>
@@ -222,9 +252,9 @@ export const ProductsView: React.FC = () => {
 
                 <div className="pt-4 border-t border-[rgba(243,241,234,0.08)]">
                   <div className="flex items-baseline justify-between mb-3">
-                    <span className="text-xs text-[#98A1BC]">A partir de</span>
+                    <span className="text-xs text-[#98A1BC]">{language === 'en' ? 'Starting at' : 'A partir de'}</span>
                     <span className="font-heading text-xl font-bold text-[#F3F1EA]">
-                      R$ {startingPrice.toLocaleString('pt-BR')}
+                      {formatPrice(startingPriceBRL, startingPriceUSD)}
                     </span>
                   </div>
 
@@ -232,7 +262,7 @@ export const ProductsView: React.FC = () => {
                     onClick={() => navigate('produto-detalhe', { slug: product.slug, tier: 'pro' })}
                     className="w-full bg-[#FF3B30] hover:bg-[#e0342a] text-[#F3F1EA] py-3 rounded-lg text-xs font-bold tracking-wide transition-all shadow-md flex items-center justify-center gap-2 min-h-[44px]"
                   >
-                    <span>Escolher plano e contratar</span>
+                    <span>{language === 'en' ? 'Select tier & order' : 'Escolher plano e contratar'}</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>

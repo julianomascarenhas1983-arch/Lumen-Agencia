@@ -4,7 +4,7 @@ import { Sparkles, ArrowRight, ShieldCheck, Zap } from 'lucide-react';
 import { InteractiveLightStudio } from './InteractiveLightStudio';
 
 export const HeroSection: React.FC = () => {
-  const { navigate } = useLumen();
+  const { navigate, language, t } = useLumen();
   const heroRef = useRef<HTMLDivElement>(null);
   const [mouseOffset, setMouseOffset] = useState({ x: 0, y: 0 });
   const [isReducedMotion, setIsReducedMotion] = useState(false);
@@ -63,10 +63,10 @@ export const HeroSection: React.FC = () => {
       {/* Subtle editorial marks in corners */}
       <div className="absolute top-6 left-6 pointer-events-none select-none text-[rgba(243,241,234,0.3)] font-mono text-[10px] hidden sm:flex items-center gap-2">
         <span className="w-1.5 h-1.5 rounded-full bg-[#19D3F3]" />
-        <span>CALIBRAÇÃO CMYK [100.80.0.0]</span>
+        <span>{language === 'en' ? 'CMYK CALIBRATION [100.80.0.0]' : 'CALIBRAÇÃO CMYK [100.80.0.0]'}</span>
       </div>
       <div className="absolute top-6 right-6 pointer-events-none select-none text-[rgba(243,241,234,0.3)] font-mono text-[10px] hidden sm:flex items-center gap-2">
-        <span>CURADORIA SÊNIOR CERTIFICADA</span>
+        <span>{language === 'en' ? 'CERTIFIED SENIOR CURATION' : 'CURADORIA SÊNIOR CERTIFICADA'}</span>
         <span className="w-1.5 h-1.5 rounded-full bg-[#F6C453]" />
       </div>
 
@@ -76,7 +76,7 @@ export const HeroSection: React.FC = () => {
           {/* Tagline / Assinatura */}
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-[rgba(246,196,83,0.35)] bg-[#F6C453]/10 text-[#F6C453] text-xs font-mono tracking-wider mb-6 shadow-[0_0_20px_rgba(246,196,83,0.15)]">
             <span className="w-1.5 h-1.5 rounded-full bg-[#F6C453] animate-ping" />
-            <span>MARCAS QUE SE FAZEM VER</span>
+            <span>{language === 'en' ? 'BRANDS THAT COMMAND ATTENTION' : 'MARCAS QUE SE FAZEM VER'}</span>
           </div>
 
           {/* MOMENTO MARCANTE: Giant "Lumen" with print out-of-registration converging layers */}
@@ -111,10 +111,21 @@ export const HeroSection: React.FC = () => {
 
           {/* Subtítulo direto e objetivo */}
           <p className="mt-6 text-lg sm:text-xl md:text-2xl text-[#98A1BC] max-w-2xl mx-auto font-normal leading-relaxed">
-            Agência virtual de marketing estratégico, publicidade e comunicação.{' '}
-            <span className="text-[#F3F1EA] font-medium">
-              Inteligência artificial para velocidade de execução. Curadoria de especialistas seniores para estratégia e refinamento.
-            </span>
+            {language === 'en' ? (
+              <>
+                Virtual agency for strategic marketing, digital growth, and advertising.{' '}
+                <span className="text-[#F3F1EA] font-medium">
+                  AI velocity for speed and scale. Senior specialist curation for high-level creative execution.
+                </span>
+              </>
+            ) : (
+              <>
+                Agência virtual de marketing estratégico, publicidade e comunicação.{' '}
+                <span className="text-[#F3F1EA] font-medium">
+                  Inteligência artificial para velocidade de execução. Curadoria de especialistas seniores para estratégia e refinamento.
+                </span>
+              </>
+            )}
           </p>
 
           {/* CTAs principais */}
@@ -123,7 +134,7 @@ export const HeroSection: React.FC = () => {
               onClick={() => navigate('produtos')}
               className="w-full sm:w-auto bg-[#FF3B30] hover:bg-[#e0342a] text-[#F3F1EA] px-8 py-3.5 rounded-full text-sm font-bold tracking-wide transition-all shadow-[0_6px_24px_rgba(255,59,48,0.35)] hover:shadow-[0_8px_30px_rgba(255,59,48,0.5)] hover:scale-[1.02] active:scale-[0.98] min-h-[48px] flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-[#F6C453]"
             >
-              <span>Ver produtos e preços fixos</span>
+              <span>{language === 'en' ? 'Explore Fixed-Price Plans' : 'Ver produtos e preços fixos'}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
 
@@ -132,7 +143,7 @@ export const HeroSection: React.FC = () => {
               className="w-full sm:w-auto bg-[#0C1226] hover:bg-[#121a36] text-[#F3F1EA] border border-[rgba(246,196,83,0.3)] hover:border-[#F6C453] px-7 py-3.5 rounded-full text-sm font-semibold transition-all min-h-[48px] flex items-center justify-center gap-2 group shadow-[0_0_20px_rgba(246,196,83,0.1)]"
             >
               <Sparkles className="w-4 h-4 text-[#F6C453] group-hover:rotate-12 transition-transform" />
-              <span>Diagnóstico gratuito</span>
+              <span>{language === 'en' ? 'Free Strategic Audit' : 'Diagnóstico gratuito'}</span>
             </button>
           </div>
 
@@ -140,15 +151,15 @@ export const HeroSection: React.FC = () => {
           <div className="mt-10 pt-6 border-t border-[rgba(243,241,234,0.08)] grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-mono text-[#98A1BC]">
             <div className="flex items-center justify-center gap-2">
               <span className="w-2 h-2 rounded-full bg-[#19D3F3] shadow-[0_0_8px_#19D3F3]" />
-              <span>Preço fixo tabelado, sem surpresa</span>
+              <span>{language === 'en' ? 'Transparent fixed pricing, zero surprises' : 'Preço fixo tabelado, sem surpresa'}</span>
             </div>
             <div className="flex items-center justify-center gap-2">
               <span className="w-2 h-2 rounded-full bg-[#FF2E93] shadow-[0_0_8px_#FF2E93]" />
-              <span>Revisão obrigatória de especialista humano</span>
+              <span>{language === 'en' ? 'Senior human art direction on every deliverable' : 'Revisão obrigatória de especialista humano'}</span>
             </div>
             <div className="flex items-center justify-center gap-2">
               <span className="w-2 h-2 rounded-full bg-[#FFD400] shadow-[0_0_8px_#FFD400]" />
-              <span>Contratação via WhatsApp com revisões garantidas</span>
+              <span>{language === 'en' ? 'Direct ordering with guaranteed revision rounds' : 'Contratação via WhatsApp com revisões garantidas'}</span>
             </div>
           </div>
 

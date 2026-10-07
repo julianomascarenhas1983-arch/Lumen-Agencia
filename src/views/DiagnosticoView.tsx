@@ -34,7 +34,8 @@ import {
 } from 'lucide-react';
 
 export const DiagnosticoView: React.FC = () => {
-  const { navigate } = useLumen();
+  const { navigate, language, t } = useLumen();
+  const isEn = language === 'en';
 
   // Wizard Step: 1 | 2 | 3
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
@@ -57,15 +58,17 @@ export const DiagnosticoView: React.FC = () => {
       city: '',
 
       // Passo 2: Situação atual
-      currentChannels: ['Instagram', 'WhatsApp Comercial'],
-      postingFrequency: 'Às vezes (toda semana)',
-      monthlyInvestment: 'De R$ 500 a R$ 2.000',
-      priceRange: 'R$ 100 a R$ 500',
+      currentChannels: isEn ? ['Instagram', 'Business WhatsApp / SMS'] : ['Instagram', 'WhatsApp Comercial'],
+      postingFrequency: isEn ? 'Occasionally (weekly)' : 'Às vezes (toda semana)',
+      monthlyInvestment: isEn ? '$500 to $2,000 / month' : 'De R$ 500 a R$ 2.000',
+      priceRange: isEn ? '$50 to $200 (Consumer average)' : 'R$ 100 a R$ 500',
 
       // Passo 3: O objetivo e a dor
-      mainGoal: 'Aumentar a atração de clientes qualificados e vendas',
+      mainGoal: isEn
+        ? 'Attract qualified high-intent leads and accelerate sales'
+        : 'Aumentar a atração de clientes qualificados e vendas',
       mainDifficulty: '',
-      urgency: 'Imediato (próximos 15 a 30 dias)',
+      urgency: isEn ? 'Immediate (next 15 to 30 days)' : 'Imediato (próximos 15 a 30 dias)',
       contactEmail: '',
       contactPhone: '',
       lgpdConsent: true,
@@ -95,56 +98,107 @@ export const DiagnosticoView: React.FC = () => {
     }
   }, [formData]);
 
-  const channelOptions = [
-    'Instagram',
-    'WhatsApp Comercial',
-    'LinkedIn',
-    'Site ou Landing Page',
-    'Google Ads / Busca',
-    'Indicação boca a boca',
-    'TikTok / Reels',
-    'Ponto Físico / Loja',
-    'E-commerce / Loja Virtual',
-  ];
+  const channelOptions = isEn
+    ? [
+        'Instagram',
+        'Business WhatsApp / SMS',
+        'LinkedIn',
+        'Website or Landing Page',
+        'Google Ads / Search',
+        'Word of Mouth / Referrals',
+        'TikTok / Reels',
+        'Physical Store / Retail',
+        'E-commerce / Online Store',
+      ]
+    : [
+        'Instagram',
+        'WhatsApp Comercial',
+        'LinkedIn',
+        'Site ou Landing Page',
+        'Google Ads / Busca',
+        'Indicação boca a boca',
+        'TikTok / Reels',
+        'Ponto Físico / Loja',
+        'E-commerce / Loja Virtual',
+      ];
 
-  const postingFrequencyOptions = [
-    'Não publico ou anuncio atualmente',
-    'Raramente (1 a 2 vezes por mês)',
-    'Às vezes (toda semana)',
-    'Frequentemente (quase todo dia)',
-    'Anúncios pagos ativos e contínuos',
-  ];
+  const postingFrequencyOptions = isEn
+    ? [
+        'I do not currently publish or run ads',
+        'Rarely (1 to 2 times per month)',
+        'Occasionally (weekly)',
+        'Frequently (almost daily)',
+        'Active and continuous paid ad campaigns',
+      ]
+    : [
+        'Não publico ou anuncio atualmente',
+        'Raramente (1 a 2 vezes por mês)',
+        'Às vezes (toda semana)',
+        'Frequentemente (quase todo dia)',
+        'Anúncios pagos ativos e contínuos',
+      ];
 
-  const investmentOptions = [
-    'Ainda não invisto em marketing',
-    'Até R$ 500 / mês',
-    'De R$ 500 a R$ 2.000 / mês',
-    'De R$ 2.000 a R$ 5.000 / mês',
-    'Acima de R$ 5.000 / mês',
-  ];
+  const investmentOptions = isEn
+    ? [
+        'Not currently investing in marketing',
+        'Up to $500 / month',
+        '$500 to $2,000 / month',
+        '$2,000 to $5,000 / month',
+        'Over $5,000 / month',
+      ]
+    : [
+        'Ainda não invisto em marketing',
+        'Até R$ 500 / mês',
+        'De R$ 500 a R$ 2.000 / mês',
+        'De R$ 2.000 a R$ 5.000 / mês',
+        'Acima de R$ 5.000 / mês',
+      ];
 
-  const priceRangeOptions = [
-    'Abaixo de R$ 50 (Ticket baixo/varejo)',
-    'R$ 50 a R$ 200 (Ticket médio popular)',
-    'R$ 200 a R$ 1.000 (Ticket médio padrão)',
-    'R$ 1.000 a R$ 5.000 (Ticket alto/serviços)',
-    'Acima de R$ 5.000 (High ticket / Consultoria / B2B)',
-  ];
+  const priceRangeOptions = isEn
+    ? [
+        'Under $50 (Low ticket / retail)',
+        '$50 to $200 (Consumer average)',
+        '$200 to $1,000 (Mid-ticket product/service)',
+        '$1,000 to $5,000 (High-ticket specialized service)',
+        'Over $5,000 (Enterprise / Consulting / B2B)',
+      ]
+    : [
+        'Abaixo de R$ 50 (Ticket baixo/varejo)',
+        'R$ 50 a R$ 200 (Ticket médio popular)',
+        'R$ 200 a R$ 1.000 (Ticket médio padrão)',
+        'R$ 1.000 a R$ 5.000 (Ticket alto/serviços)',
+        'Acima de R$ 5.000 (High ticket / Consultoria / B2B)',
+      ];
 
-  const mainGoalOptions = [
-    'Aumentar a atração de clientes qualificados e vendas',
-    'Construir autoridade de marca e posicionamento premium',
-    'Criar ou reformular identidade visual e presença digital',
-    'Estruturar uma landing page de alta conversão',
-    'Delegar a produção de criativos e anúncios para especialistas',
-    'Escalar o negócio com campanhas de anúncios em vídeo',
-  ];
+  const mainGoalOptions = isEn
+    ? [
+        'Attract qualified high-intent leads and accelerate sales',
+        'Build authority and premium brand positioning',
+        'Create or rebrand visual identity and digital assets',
+        'Architect a high-converting landing page',
+        'Delegate social media creative production to specialists',
+        'Scale customer acquisition with high-impact campaign videos',
+      ]
+    : [
+        'Aumentar a atração de clientes qualificados e vendas',
+        'Construir autoridade de marca e posicionamento premium',
+        'Criar ou reformular identidade visual e presença digital',
+        'Estruturar uma landing page de alta conversão',
+        'Delegar a produção de criativos e anúncios para especialistas',
+        'Escalar o negócio com campanhas de anúncios em vídeo',
+      ];
 
-  const urgencyOptions = [
-    'Imediato (próximos 15 a 30 dias)',
-    'Médio prazo (próximos 60 dias)',
-    'Planejamento para o próximo trimestre',
-  ];
+  const urgencyOptions = isEn
+    ? [
+        'Immediate (next 15 to 30 days)',
+        'Medium term (next 60 days)',
+        'Strategic planning for next quarter',
+      ]
+    : [
+        'Imediato (próximos 15 a 30 dias)',
+        'Médio prazo (próximos 60 dias)',
+        'Planejamento para o próximo trimestre',
+      ];
 
   const toggleChannel = (channel: string) => {
     setFormData((prev) => {
@@ -168,26 +222,26 @@ export const DiagnosticoView: React.FC = () => {
 
     if (currentStep === 1) {
       if (!formData.businessName.trim()) {
-        setStepError('Por favor, informe o nome do seu negócio ou marca.');
+        setStepError(isEn ? 'Please provide your business or brand name.' : 'Por favor, informe o nome do seu negócio ou marca.');
         return;
       }
       if (!formData.segment.trim()) {
-        setStepError('Por favor, informe o segmento de atuação.');
+        setStepError(isEn ? 'Please specify your industry/market segment.' : 'Por favor, informe o segmento de atuação.');
         return;
       }
       if (!formData.whatItDoes.trim()) {
-        setStepError('Descreva em uma frase o que o seu negócio vende ou faz.');
+        setStepError(isEn ? 'Describe what your business sells or does in one sentence.' : 'Descreva em uma frase o que o seu negócio vende ou faz.');
         return;
       }
       setCurrentStep(2);
       window.scrollTo({ top: 100, behavior: 'smooth' });
     } else if (currentStep === 2) {
       if (!formData.postingFrequency) {
-        setStepError('Selecione a frequência atual de postagem/anúncios.');
+        setStepError(isEn ? 'Please select your current publishing/ad frequency.' : 'Selecione a frequência atual de postagem/anúncios.');
         return;
       }
       if (!formData.monthlyInvestment) {
-        setStepError('Selecione a faixa atual de investimento mensal.');
+        setStepError(isEn ? 'Please select your current monthly marketing budget.' : 'Selecione a faixa atual de investimento mensal.');
         return;
       }
       setCurrentStep(3);
@@ -207,19 +261,19 @@ export const DiagnosticoView: React.FC = () => {
     setStepError('');
 
     if (!formData.mainGoal) {
-      setStepError('Selecione o objetivo prioritário do seu negócio.');
+      setStepError(isEn ? 'Please select your primary business goal.' : 'Selecione o objetivo prioritário do seu negócio.');
       return;
     }
     if (!formData.mainDifficulty.trim()) {
-      setStepError('Descreva resumidamente a sua principal dificuldade com marketing hoje.');
+      setStepError(isEn ? 'Please describe your main marketing bottleneck or challenge.' : 'Descreva resumidamente a sua principal dificuldade com marketing hoje.');
       return;
     }
     if (!formData.contactEmail.trim() || !formData.contactEmail.includes('@')) {
-      setStepError('Informe um e-mail válido para receber a confirmação e o retorno da análise.');
+      setStepError(isEn ? 'Please provide a valid email address to receive your confirmation.' : 'Informe um e-mail válido para receber a confirmação e o retorno da análise.');
       return;
     }
     if (!formData.lgpdConsent) {
-      setStepError('É necessário autorizar o processamento dos dados para envio do mini-briefing.');
+      setStepError(isEn ? 'You must authorize data processing to submit this mini-briefing.' : 'É necessário autorizar o processamento dos dados para envio do mini-briefing.');
       return;
     }
 
@@ -229,7 +283,7 @@ export const DiagnosticoView: React.FC = () => {
       const protocol = generateBriefingProtocol();
 
       // Submit email to company and client
-      await submitBriefingEmail(formData, protocol);
+      await submitBriefingEmail(formData, protocol, language);
 
       const submission: MiniBriefingSubmission = {
         protocol,
@@ -248,7 +302,11 @@ export const DiagnosticoView: React.FC = () => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err: any) {
       console.error('Submission error:', err);
-      setStepError('Ocorreu uma falha ao enviar. Por favor, tente novamente ou envie diretamente pelo WhatsApp.');
+      setStepError(
+        isEn
+          ? 'An error occurred during submission. Please try again or reach out directly on WhatsApp.'
+          : 'Ocorreu uma falha ao enviar. Por favor, tente novamente ou envie diretamente pelo WhatsApp.'
+      );
     } finally {
       setIsLoading(false);
     }
@@ -271,13 +329,15 @@ export const DiagnosticoView: React.FC = () => {
       whatItDoes: '',
       targetAudience: '',
       city: '',
-      currentChannels: ['Instagram', 'WhatsApp Comercial'],
-      postingFrequency: 'Às vezes (toda semana)',
-      monthlyInvestment: 'De R$ 500 a R$ 2.000',
-      priceRange: 'R$ 100 a R$ 500',
-      mainGoal: 'Aumentar a atração de clientes qualificados e vendas',
+      currentChannels: isEn ? ['Instagram', 'Business WhatsApp / SMS'] : ['Instagram', 'WhatsApp Comercial'],
+      postingFrequency: isEn ? 'Occasionally (weekly)' : 'Às vezes (toda semana)',
+      monthlyInvestment: isEn ? '$500 to $2,000 / month' : 'De R$ 500 a R$ 2.000',
+      priceRange: isEn ? '$50 to $200 (Consumer average)' : 'R$ 100 a R$ 500',
+      mainGoal: isEn
+        ? 'Attract qualified high-intent leads and accelerate sales'
+        : 'Aumentar a atração de clientes qualificados e vendas',
       mainDifficulty: '',
-      urgency: 'Imediato (próximos 15 a 30 dias)',
+      urgency: isEn ? 'Immediate (next 15 to 30 days)' : 'Imediato (próximos 15 a 30 dias)',
       contactEmail: '',
       contactPhone: '',
       lgpdConsent: true,
@@ -300,24 +360,29 @@ export const DiagnosticoView: React.FC = () => {
               </div>
 
               <h2 className="font-heading text-2xl sm:text-4xl font-bold text-[#F3F1EA] tracking-tight">
-                Mini-Briefing Estratégico Enviado!
+                {t('diagnosis.successTitle', 'Mini-Briefing Estratégico Enviado!')}
               </h2>
 
               <p className="text-[#98A1BC] max-w-xl mx-auto mt-2 text-sm sm:text-base leading-relaxed">
-                Suas informações foram registradas com sucesso e encaminhadas diretamente para a diretoria da <strong className="text-[#F3F1EA]">Lumen Agência Virtual</strong>.
+                {t(
+                  'diagnosis.successDesc',
+                  'Suas informações foram registradas com sucesso e encaminhadas diretamente para a diretoria da Lumen Agência Virtual.'
+                )}
               </p>
 
               {/* Protocolo Box */}
               <div className="mt-6 inline-flex flex-col sm:flex-row items-center gap-3 bg-[#070A17] border border-white/10 px-5 py-3 rounded-2xl">
-                <span className="text-xs uppercase tracking-wider text-[#98A1BC] font-mono">Protocolo de Atendimento:</span>
+                <span className="text-xs uppercase tracking-wider text-[#98A1BC] font-mono">
+                  {t('diagnosis.protocolLabel', 'Protocolo de Atendimento:')}
+                </span>
                 <span className="font-mono font-bold text-base sm:text-lg text-[#F6C453]">{submissionSuccess.protocol}</span>
                 <button
                   onClick={() => handleCopyProtocol(submissionSuccess.protocol)}
                   className="p-1.5 hover:bg-white/10 rounded-lg text-[#98A1BC] hover:text-[#F3F1EA] transition-all flex items-center gap-1 text-xs"
-                  title="Copiar protocolo"
+                  title={t('diagnosis.btnCopy', 'Copiar protocolo')}
                 >
                   {copiedProtocol ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-                  <span>{copiedProtocol ? 'Copiado' : 'Copiar'}</span>
+                  <span>{copiedProtocol ? t('diagnosis.copied', 'Copiado') : t('diagnosis.btnCopy', 'Copiar')}</span>
                 </button>
               </div>
 
@@ -328,9 +393,13 @@ export const DiagnosticoView: React.FC = () => {
                     <Mail className="w-5 h-5" />
                   </div>
                   <div>
-                    <span className="text-xs font-semibold text-[#F3F1EA] block">Encaminhado para a Empresa:</span>
+                    <span className="text-xs font-semibold text-[#F3F1EA] block">
+                      {t('diagnosis.companyNotified', 'Encaminhado para a Empresa:')}
+                    </span>
                     <span className="text-xs text-[#19D3F3] font-mono block mt-0.5">{LUMEN_COMPANY_EMAIL}</span>
-                    <span className="text-[11px] text-[#98A1BC] block mt-1">Nossa diretoria estratégica já foi notificada.</span>
+                    <span className="text-[11px] text-[#98A1BC] block mt-1">
+                      {t('diagnosis.companyNotice', 'Nossa diretoria estratégica já foi notificada.')}
+                    </span>
                   </div>
                 </div>
 
@@ -339,9 +408,13 @@ export const DiagnosticoView: React.FC = () => {
                     <CheckCircle2 className="w-5 h-5" />
                   </div>
                   <div>
-                    <span className="text-xs font-semibold text-[#F3F1EA] block">Cópia do Solicitante:</span>
+                    <span className="text-xs font-semibold text-[#F3F1EA] block">
+                      {t('diagnosis.clientCopy', 'Cópia do Solicitante:')}
+                    </span>
                     <span className="text-xs text-emerald-400 font-mono block mt-0.5">{submissionSuccess.clientEmail}</span>
-                    <span className="text-[11px] text-[#98A1BC] block mt-1">Você receberá o retorno da análise em até 24h úteis.</span>
+                    <span className="text-[11px] text-[#98A1BC] block mt-1">
+                      {t('diagnosis.clientNotice', 'Você receberá o retorno da análise em até 24h úteis.')}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -349,21 +422,21 @@ export const DiagnosticoView: React.FC = () => {
               {/* Ações Imediatas */}
               <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
                 <a
-                  href={createWhatsAppBriefingUrl(submissionSuccess.formData, submissionSuccess.protocol)}
+                  href={createWhatsAppBriefingUrl(submissionSuccess.formData, submissionSuccess.protocol, language)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="bg-emerald-500 hover:bg-emerald-400 text-[#070A17] font-bold px-6 py-3 rounded-xl transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.3)] text-sm"
                 >
                   <MessageCircle className="w-4 h-4" />
-                  <span>Acelerar Atendimento via WhatsApp</span>
+                  <span>{t('diagnosis.btnWhatsApp', 'Acelerar Atendimento via WhatsApp')}</span>
                 </a>
 
                 <a
-                  href={createMailtoUrl(submissionSuccess.formData, submissionSuccess.protocol)}
+                  href={createMailtoUrl(submissionSuccess.formData, submissionSuccess.protocol, language)}
                   className="bg-white/10 hover:bg-white/20 text-[#F3F1EA] border border-white/20 font-bold px-5 py-3 rounded-xl transition-all flex items-center gap-2 text-sm"
                 >
                   <ExternalLink className="w-4 h-4" />
-                  <span>Abrir no meu E-mail (Gmail/Outlook)</span>
+                  <span>{t('diagnosis.btnEmailApp', 'Abrir no meu E-mail (Gmail/Outlook)')}</span>
                 </a>
 
                 <button
@@ -371,7 +444,7 @@ export const DiagnosticoView: React.FC = () => {
                   className="bg-white/5 hover:bg-white/10 text-[#98A1BC] hover:text-[#F3F1EA] border border-white/10 px-4 py-3 rounded-xl transition-all flex items-center gap-2 text-sm"
                 >
                   <Printer className="w-4 h-4" />
-                  <span>Imprimir / Salvar PDF</span>
+                  <span>{t('diagnosis.btnPrint', 'Imprimir / Salvar PDF')}</span>
                 </button>
               </div>
             </div>
@@ -381,64 +454,68 @@ export const DiagnosticoView: React.FC = () => {
               <div className="flex items-center justify-between pb-4 border-b border-white/10">
                 <div className="flex items-center gap-2">
                   <FileText className="w-5 h-5 text-[#F6C453]" />
-                  <h3 className="font-heading text-lg font-bold text-[#F3F1EA]">Resumo do Mini-Briefing Registrado</h3>
+                  <h3 className="font-heading text-lg font-bold text-[#F3F1EA]">
+                    {t('diagnosis.summaryTitle', 'Resumo do Mini-Briefing Registrado')}
+                  </h3>
                 </div>
                 <span className="text-xs text-[#98A1BC] font-mono">
-                  {new Date(submissionSuccess.submittedAt).toLocaleDateString('pt-BR')} às {new Date(submissionSuccess.submittedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                  {new Date(submissionSuccess.submittedAt).toLocaleDateString(isEn ? 'en-US' : 'pt-BR')}
                 </span>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
                 <div className="bg-[#070A17]/60 border border-white/5 p-4 rounded-2xl space-y-2">
                   <span className="text-xs uppercase tracking-wider text-[#F6C453] font-semibold flex items-center gap-1.5">
-                    <Building2 className="w-3.5 h-3.5" /> Identidade do Negócio
+                    <Building2 className="w-3.5 h-3.5" /> {isEn ? 'Business Profile' : 'Identidade do Negócio'}
                   </span>
-                  <p><strong className="text-[#98A1BC]">Empresa:</strong> <span className="text-[#F3F1EA]">{submissionSuccess.formData.businessName}</span></p>
+                  <p><strong className="text-[#98A1BC]">{isEn ? 'Company:' : 'Empresa:'}</strong> <span className="text-[#F3F1EA]">{submissionSuccess.formData.businessName}</span></p>
                   {submissionSuccess.formData.contactName && (
-                    <p><strong className="text-[#98A1BC]">Responsável:</strong> <span className="text-[#F3F1EA]">{submissionSuccess.formData.contactName}</span></p>
+                    <p><strong className="text-[#98A1BC]">{isEn ? 'Contact:' : 'Responsável:'}</strong> <span className="text-[#F3F1EA]">{submissionSuccess.formData.contactName}</span></p>
                   )}
-                  <p><strong className="text-[#98A1BC]">Segmento:</strong> <span className="text-[#F3F1EA]">{submissionSuccess.formData.segment}</span></p>
-                  <p><strong className="text-[#98A1BC]">O que faz:</strong> <span className="text-[#F3F1EA]">{submissionSuccess.formData.whatItDoes}</span></p>
+                  <p><strong className="text-[#98A1BC]">{isEn ? 'Industry:' : 'Segmento:'}</strong> <span className="text-[#F3F1EA]">{submissionSuccess.formData.segment}</span></p>
+                  <p><strong className="text-[#98A1BC]">{isEn ? 'What it does:' : 'O que faz:'}</strong> <span className="text-[#F3F1EA]">{submissionSuccess.formData.whatItDoes}</span></p>
                   {submissionSuccess.formData.targetAudience && (
-                    <p><strong className="text-[#98A1BC]">Público-alvo:</strong> <span className="text-[#F3F1EA]">{submissionSuccess.formData.targetAudience}</span></p>
+                    <p><strong className="text-[#98A1BC]">{isEn ? 'Audience:' : 'Público-alvo:'}</strong> <span className="text-[#F3F1EA]">{submissionSuccess.formData.targetAudience}</span></p>
                   )}
                   {submissionSuccess.formData.city && (
-                    <p><strong className="text-[#98A1BC]">Região:</strong> <span className="text-[#F3F1EA]">{submissionSuccess.formData.city}</span></p>
+                    <p><strong className="text-[#98A1BC]">{isEn ? 'Location:' : 'Região:'}</strong> <span className="text-[#F3F1EA]">{submissionSuccess.formData.city}</span></p>
                   )}
                 </div>
 
                 <div className="bg-[#070A17]/60 border border-white/5 p-4 rounded-2xl space-y-2">
                   <span className="text-xs uppercase tracking-wider text-[#19D3F3] font-semibold flex items-center gap-1.5">
-                    <BarChart3 className="w-3.5 h-3.5" /> Operação & Presença
+                    <BarChart3 className="w-3.5 h-3.5" /> {isEn ? 'Current Operations' : 'Operação & Presença'}
                   </span>
-                  <p><strong className="text-[#98A1BC]">Canais ativos:</strong> <span className="text-[#F3F1EA]">{submissionSuccess.formData.currentChannels.join(', ') || 'Nenhum'}</span></p>
-                  <p><strong className="text-[#98A1BC]">Frequência:</strong> <span className="text-[#F3F1EA]">{submissionSuccess.formData.postingFrequency}</span></p>
-                  <p><strong className="text-[#98A1BC]">Investimento:</strong> <span className="text-[#F3F1EA]">{submissionSuccess.formData.monthlyInvestment}</span></p>
+                  <p><strong className="text-[#98A1BC]">{isEn ? 'Active channels:' : 'Canais ativos:'}</strong> <span className="text-[#F3F1EA]">{submissionSuccess.formData.currentChannels.join(', ') || 'Nenhum'}</span></p>
+                  <p><strong className="text-[#98A1BC]">{isEn ? 'Frequency:' : 'Frequência:'}</strong> <span className="text-[#F3F1EA]">{submissionSuccess.formData.postingFrequency}</span></p>
+                  <p><strong className="text-[#98A1BC]">{isEn ? 'Budget:' : 'Investimento:'}</strong> <span className="text-[#F3F1EA]">{submissionSuccess.formData.monthlyInvestment}</span></p>
                   {submissionSuccess.formData.priceRange && (
-                    <p><strong className="text-[#98A1BC]">Ticket Médio:</strong> <span className="text-[#F3F1EA]">{submissionSuccess.formData.priceRange}</span></p>
+                    <p><strong className="text-[#98A1BC]">{isEn ? 'Ticket:' : 'Ticket Médio:'}</strong> <span className="text-[#F3F1EA]">{submissionSuccess.formData.priceRange}</span></p>
                   )}
                 </div>
 
                 <div className="bg-[#070A17]/60 border border-white/5 p-4 rounded-2xl space-y-2 md:col-span-2">
                   <span className="text-xs uppercase tracking-wider text-rose-400 font-semibold flex items-center gap-1.5">
-                    <Target className="w-3.5 h-3.5" /> Objetivos & Gargalos
+                    <Target className="w-3.5 h-3.5" /> {isEn ? 'Goals & Bottlenecks' : 'Objetivos & Gargalos'}
                   </span>
-                  <p><strong className="text-[#98A1BC]">Objetivo Prioritário:</strong> <span className="text-[#F3F1EA]">{submissionSuccess.formData.mainGoal}</span></p>
-                  <p><strong className="text-[#98A1BC]">Maior Dificuldade Relatada:</strong> <span className="text-[#F3F1EA]">{submissionSuccess.formData.mainDifficulty}</span></p>
+                  <p><strong className="text-[#98A1BC]">{isEn ? 'Core Goal:' : 'Objetivo Prioritário:'}</strong> <span className="text-[#F3F1EA]">{submissionSuccess.formData.mainGoal}</span></p>
+                  <p><strong className="text-[#98A1BC]">{isEn ? 'Key Challenge:' : 'Maior Dificuldade Relatada:'}</strong> <span className="text-[#F3F1EA]">{submissionSuccess.formData.mainDifficulty}</span></p>
                   {submissionSuccess.formData.urgency && (
-                    <p><strong className="text-[#98A1BC]">Urgência:</strong> <span className="text-[#F3F1EA]">{submissionSuccess.formData.urgency}</span></p>
+                    <p><strong className="text-[#98A1BC]">{isEn ? 'Urgency:' : 'Urgência:'}</strong> <span className="text-[#F3F1EA]">{submissionSuccess.formData.urgency}</span></p>
                   )}
                 </div>
               </div>
 
               {/* Reset button */}
               <div className="pt-4 border-t border-white/10 flex justify-between items-center">
-                <span className="text-xs text-[#98A1BC]">Deseja enviar outro diagnóstico ou alterar os dados?</span>
+                <span className="text-xs text-[#98A1BC]">
+                  {isEn ? 'Need to submit another briefing?' : 'Deseja enviar outro diagnóstico ou alterar os dados?'}
+                </span>
                 <button
                   onClick={handleResetForm}
                   className="text-xs text-[#F6C453] hover:underline font-semibold"
                 >
-                  Novo Mini-Briefing
+                  {t('diagnosis.newBriefing', 'Novo Mini-Briefing')}
                 </button>
               </div>
             </div>
@@ -450,28 +527,33 @@ export const DiagnosticoView: React.FC = () => {
             <div className="text-center space-y-3">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#19D3F3]/10 border border-[#19D3F3]/30 text-[#19D3F3] text-xs font-semibold uppercase tracking-wider">
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>Diagnóstico & Mini-Briefing Estratégico</span>
+                <span>{t('diagnosis.badge', 'Diagnóstico & Mini-Briefing Estratégico')}</span>
               </div>
               <h1 className="font-heading text-3xl sm:text-5xl font-bold text-[#F3F1EA] tracking-tight">
-                Diagnóstico Estratégico do Seu Negócio
+                {t('diagnosis.title', 'Diagnóstico Estratégico do Seu Negócio')}
               </h1>
               <p className="text-[#98A1BC] max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
-                Preencha o mini-briefing abaixo. Nossa equipe de diretores e estrategistas analisará o perfil da sua empresa e encaminhará um direcionamento completo diretamente para o seu e-mail.
+                {t(
+                  'diagnosis.subtitle',
+                  'Preencha o mini-briefing abaixo. Nossa equipe de diretores e estrategistas analisará o perfil da sua empresa e encaminhará um direcionamento completo diretamente para o seu e-mail.'
+                )}
               </p>
 
               {/* Selos de Confiança */}
               <div className="flex flex-wrap items-center justify-center gap-4 pt-2 text-xs text-[#98A1BC]">
                 <span className="flex items-center gap-1.5">
                   <Shield className="w-4 h-4 text-emerald-400" />
-                  <span>100% Confidencial (LGPD)</span>
+                  <span>{isEn ? '100% Confidential (Privacy Compliant)' : '100% Confidencial (LGPD)'}</span>
                 </span>
                 <span className="flex items-center gap-1.5">
                   <Mail className="w-4 h-4 text-[#19D3F3]" />
-                  <span>Encaminhado para: <strong className="text-[#F3F1EA]">{LUMEN_COMPANY_EMAIL}</strong></span>
+                  <span>
+                    {isEn ? 'Routed to:' : 'Encaminhado para:'} <strong className="text-[#F3F1EA]">{LUMEN_COMPANY_EMAIL}</strong>
+                  </span>
                 </span>
                 <span className="flex items-center gap-1.5">
                   <Clock className="w-4 h-4 text-[#F6C453]" />
-                  <span>Retorno executivo em até 24h úteis</span>
+                  <span>{isEn ? 'Executive response within 24h' : 'Retorno executivo em até 24h úteis'}</span>
                 </span>
               </div>
             </div>
@@ -484,10 +566,15 @@ export const DiagnosticoView: React.FC = () => {
               <div className="mb-8">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-mono font-bold text-[#F6C453] uppercase tracking-wider">
-                    Passo {currentStep} de 3 — {currentStep === 1 ? 'O Negócio' : currentStep === 2 ? 'Operação Atual' : 'Objetivo & Envio'}
+                    {t('diagnosis.stepOf', 'Passo')} {currentStep} {t('diagnosis.of', 'de')} 3 —{' '}
+                    {currentStep === 1
+                      ? isEn ? 'The Business' : 'O Negócio'
+                      : currentStep === 2
+                      ? isEn ? 'Current Presence' : 'Operação Atual'
+                      : isEn ? 'Goal & Contact' : 'Objetivo & Envio'}
                   </span>
                   <span className="text-xs font-mono text-[#98A1BC]">
-                    {currentStep === 1 ? '33%' : currentStep === 2 ? '66%' : '100%'} concluído
+                    {currentStep === 1 ? '33%' : currentStep === 2 ? '66%' : '100%'} {t('diagnosis.completed', 'concluído')}
                   </span>
                 </div>
                 <div className="w-full bg-[#070A17] h-2 rounded-full overflow-hidden border border-white/5">
@@ -497,9 +584,9 @@ export const DiagnosticoView: React.FC = () => {
                   />
                 </div>
                 <div className="flex justify-between text-[11px] text-[#98A1BC] mt-2 font-medium">
-                  <span className={currentStep >= 1 ? 'text-[#F6C453]' : ''}>1. O negócio</span>
-                  <span className={currentStep >= 2 ? 'text-[#F6C453]' : ''}>2. Situação atual</span>
-                  <span className={currentStep >= 3 ? 'text-[#F6C453]' : ''}>3. Objetivo & Contato</span>
+                  <span className={currentStep >= 1 ? 'text-[#F6C453]' : ''}>{t('diagnosis.step1', '1. O negócio')}</span>
+                  <span className={currentStep >= 2 ? 'text-[#F6C453]' : ''}>{t('diagnosis.step2', '2. Situação atual')}</span>
+                  <span className={currentStep >= 3 ? 'text-[#F6C453]' : ''}>{t('diagnosis.step3', '3. Objetivo & Contato')}</span>
                 </div>
               </div>
 
@@ -517,13 +604,13 @@ export const DiagnosticoView: React.FC = () => {
                   <div className="space-y-5 animate-fadeIn">
                     <div>
                       <label className="block text-xs font-heading font-bold uppercase tracking-wider text-[#F3F1EA] mb-2">
-                        Nome do Negócio ou Marca <span className="text-rose-400">*</span>
+                        {t('diagnosis.businessName', 'Nome do Negócio ou Marca')} <span className="text-rose-400">*</span>
                       </label>
                       <input
                         type="text"
                         value={formData.businessName}
                         onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
-                        placeholder="Ex.: Aurora Saúde, Studio Nobre, Barbearia 83..."
+                        placeholder={t('diagnosis.businessNamePlaceholder', 'Ex.: Aurora Saúde, Studio Nobre, Barbearia 83...')}
                         className="w-full bg-[#070A17] border border-white/10 rounded-xl px-4 py-3 text-sm text-[#F3F1EA] placeholder-[#98A1BC]/50 focus:border-[#F6C453] focus:ring-1 focus:ring-[#F6C453] transition-all"
                         required
                       />
@@ -532,13 +619,13 @@ export const DiagnosticoView: React.FC = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-heading font-bold uppercase tracking-wider text-[#F3F1EA] mb-2">
-                          Seu Nome ou Cargo <span className="text-rose-400">*</span>
+                          {t('diagnosis.contactName', 'Seu Nome ou Cargo')} <span className="text-rose-400">*</span>
                         </label>
                         <input
                           type="text"
                           value={formData.contactName || ''}
                           onChange={(e) => setFormData({ ...formData, contactName: e.target.value })}
-                          placeholder="Ex.: Dra. Camila (Sócia-fundadora)"
+                          placeholder={t('diagnosis.contactNamePlaceholder', 'Ex.: Dra. Camila (Sócia-fundadora)')}
                           className="w-full bg-[#070A17] border border-white/10 rounded-xl px-4 py-3 text-sm text-[#F3F1EA] placeholder-[#98A1BC]/50 focus:border-[#F6C453] focus:ring-1 focus:ring-[#F6C453] transition-all"
                           required
                         />
@@ -546,13 +633,13 @@ export const DiagnosticoView: React.FC = () => {
 
                       <div>
                         <label className="block text-xs font-heading font-bold uppercase tracking-wider text-[#F3F1EA] mb-2">
-                          Segmento de Atuação <span className="text-rose-400">*</span>
+                          {t('diagnosis.segment', 'Segmento de Atuação')} <span className="text-rose-400">*</span>
                         </label>
                         <input
                           type="text"
                           value={formData.segment}
                           onChange={(e) => setFormData({ ...formData, segment: e.target.value })}
-                          placeholder="Ex.: Clínica Médica, Varejo de Alimentos, Consultoria..."
+                          placeholder={t('diagnosis.segmentPlaceholder', 'Ex.: Clínica Médica, Varejo de Alimentos, Consultoria...')}
                           className="w-full bg-[#070A17] border border-white/10 rounded-xl px-4 py-3 text-sm text-[#F3F1EA] placeholder-[#98A1BC]/50 focus:border-[#F6C453] focus:ring-1 focus:ring-[#F6C453] transition-all"
                           required
                         />
@@ -561,13 +648,13 @@ export const DiagnosticoView: React.FC = () => {
 
                     <div>
                       <label className="block text-xs font-heading font-bold uppercase tracking-wider text-[#F3F1EA] mb-2">
-                        O que o seu negócio vende ou faz, em uma frase? <span className="text-rose-400">*</span>
+                        {t('diagnosis.whatItDoes', 'O que o seu negócio vende ou faz, em uma frase?')} <span className="text-rose-400">*</span>
                       </label>
                       <input
                         type="text"
                         value={formData.whatItDoes}
                         onChange={(e) => setFormData({ ...formData, whatItDoes: e.target.value })}
-                        placeholder="Ex.: Consultas integrativas e tratamentos preventivos para longevidade saudável"
+                        placeholder={t('diagnosis.whatItDoesPlaceholder', 'Ex.: Consultas integrativas e tratamentos preventivos para longevidade saudável')}
                         className="w-full bg-[#070A17] border border-white/10 rounded-xl px-4 py-3 text-sm text-[#F3F1EA] placeholder-[#98A1BC]/50 focus:border-[#F6C453] focus:ring-1 focus:ring-[#F6C453] transition-all"
                         required
                       />
@@ -576,26 +663,28 @@ export const DiagnosticoView: React.FC = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-heading font-bold uppercase tracking-wider text-[#F3F1EA] mb-2">
-                          Para quem você vende? (Público-alvo) <span className="text-[#98A1BC] text-[10px] font-normal">(opcional)</span>
+                          {t('diagnosis.targetAudience', 'Para quem você vende? (Público-alvo)')}{' '}
+                          <span className="text-[#98A1BC] text-[10px] font-normal">({isEn ? 'optional' : 'opcional'})</span>
                         </label>
                         <input
                           type="text"
                           value={formData.targetAudience || ''}
                           onChange={(e) => setFormData({ ...formData, targetAudience: e.target.value })}
-                          placeholder="Ex.: Mulheres de 35 a 60 anos, empresários classe A/B..."
+                          placeholder={t('diagnosis.targetAudiencePlaceholder', 'Ex.: Mulheres de 35 a 60 anos, empresários classe A/B...')}
                           className="w-full bg-[#070A17] border border-white/10 rounded-xl px-4 py-3 text-sm text-[#F3F1EA] placeholder-[#98A1BC]/50 focus:border-[#F6C453] focus:ring-1 focus:ring-[#F6C453] transition-all"
                         />
                       </div>
 
                       <div>
                         <label className="block text-xs font-heading font-bold uppercase tracking-wider text-[#F3F1EA] mb-2">
-                          Cidade e Estado / Região <span className="text-[#98A1BC] text-[10px] font-normal">(opcional)</span>
+                          {t('diagnosis.city', 'Cidade e Estado / Região')}{' '}
+                          <span className="text-[#98A1BC] text-[10px] font-normal">({isEn ? 'optional' : 'opcional'})</span>
                         </label>
                         <input
                           type="text"
                           value={formData.city || ''}
                           onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                          placeholder="Ex.: Camaçari / BA, São Paulo / SP..."
+                          placeholder={t('diagnosis.cityPlaceholder', 'Ex.: São Paulo / SP, Austin, TX...')}
                           className="w-full bg-[#070A17] border border-white/10 rounded-xl px-4 py-3 text-sm text-[#F3F1EA] placeholder-[#98A1BC]/50 focus:border-[#F6C453] focus:ring-1 focus:ring-[#F6C453] transition-all"
                         />
                       </div>
@@ -608,9 +697,11 @@ export const DiagnosticoView: React.FC = () => {
                   <div className="space-y-6 animate-fadeIn">
                     <div>
                       <label className="block text-xs font-heading font-bold uppercase tracking-wider text-[#F3F1EA] mb-2">
-                        Canais onde já tem presença ou atua hoje
+                        {t('diagnosis.channelsTitle', 'Canais onde já tem presença ou atua hoje')}
                       </label>
-                      <p className="text-xs text-[#98A1BC] mb-3">Selecione todos os canais que sua empresa utiliza:</p>
+                      <p className="text-xs text-[#98A1BC] mb-3">
+                        {t('diagnosis.channelsDesc', 'Selecione todos os canais que sua empresa utiliza:')}
+                      </p>
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                         {channelOptions.map((channel) => {
                           const isSelected = formData.currentChannels.includes(channel);
@@ -635,7 +726,8 @@ export const DiagnosticoView: React.FC = () => {
 
                     <div>
                       <label className="block text-xs font-heading font-bold uppercase tracking-wider text-[#F3F1EA] mb-2">
-                        Com que frequência você publica ou anuncia hoje? <span className="text-rose-400">*</span>
+                        {t('diagnosis.postingFrequency', 'Com que frequência você publica ou anuncia hoje?')}{' '}
+                        <span className="text-rose-400">*</span>
                       </label>
                       <select
                         value={formData.postingFrequency}
@@ -653,7 +745,8 @@ export const DiagnosticoView: React.FC = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-heading font-bold uppercase tracking-wider text-[#F3F1EA] mb-2">
-                          Quanto investe em marketing hoje por mês? <span className="text-rose-400">*</span>
+                          {t('diagnosis.monthlyInvestment', 'Quanto investe em marketing hoje por mês?')}{' '}
+                          <span className="text-rose-400">*</span>
                         </label>
                         <select
                           value={formData.monthlyInvestment}
@@ -670,7 +763,7 @@ export const DiagnosticoView: React.FC = () => {
 
                       <div>
                         <label className="block text-xs font-heading font-bold uppercase tracking-wider text-[#F3F1EA] mb-2">
-                          Faixa de preço / Ticket médio do produto/serviço
+                          {t('diagnosis.priceRange', 'Faixa de preço / Ticket médio do produto/serviço')}
                         </label>
                         <select
                           value={formData.priceRange}
@@ -693,7 +786,8 @@ export const DiagnosticoView: React.FC = () => {
                   <div className="space-y-5 animate-fadeIn">
                     <div>
                       <label className="block text-xs font-heading font-bold uppercase tracking-wider text-[#F3F1EA] mb-2">
-                        Qual o objetivo prioritário neste momento? <span className="text-rose-400">*</span>
+                        {t('diagnosis.mainGoal', 'Qual o objetivo prioritário neste momento?')}{' '}
+                        <span className="text-rose-400">*</span>
                       </label>
                       <select
                         value={formData.mainGoal}
@@ -710,13 +804,14 @@ export const DiagnosticoView: React.FC = () => {
 
                     <div>
                       <label className="block text-xs font-heading font-bold uppercase tracking-wider text-[#F3F1EA] mb-2">
-                        Qual é a sua maior dificuldade ou gargalo com marketing hoje? <span className="text-rose-400">*</span>
+                        {t('diagnosis.mainDifficulty', 'Qual é a sua maior dificuldade ou gargalo com marketing hoje?')}{' '}
+                        <span className="text-rose-400">*</span>
                       </label>
                       <textarea
                         rows={3}
                         value={formData.mainDifficulty}
                         onChange={(e) => setFormData({ ...formData, mainDifficulty: e.target.value })}
-                        placeholder="Ex.: Levar clientes para minha loja, contatos desqualificados no WhatsApp, falta de constância nos posts..."
+                        placeholder={t('diagnosis.mainDifficultyPlaceholder', 'Ex.: Levar clientes para minha loja, contatos desqualificados no WhatsApp, falta de constância nos posts...')}
                         className="w-full bg-[#070A17] border border-white/10 rounded-xl px-4 py-3 text-sm text-[#F3F1EA] placeholder-[#98A1BC]/50 focus:border-[#F6C453] focus:ring-1 focus:ring-[#F6C453] transition-all"
                         required
                       />
@@ -724,7 +819,7 @@ export const DiagnosticoView: React.FC = () => {
 
                     <div>
                       <label className="block text-xs font-heading font-bold uppercase tracking-wider text-[#F3F1EA] mb-2">
-                        Prazo ou urgência para implementação
+                        {t('diagnosis.urgency', 'Prazo ou urgência para implementação')}
                       </label>
                       <select
                         value={formData.urgency || urgencyOptions[0]}
@@ -742,39 +837,40 @@ export const DiagnosticoView: React.FC = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-heading font-bold uppercase tracking-wider text-[#F3F1EA] mb-2">
-                          Seu E-mail Profissional <span className="text-rose-400">*</span>
+                          {t('diagnosis.contactEmail', 'Seu E-mail Profissional')} <span className="text-rose-400">*</span>
                         </label>
                         <input
                           type="email"
                           value={formData.contactEmail}
                           onChange={(e) => setFormData({ ...formData, contactEmail: e.target.value })}
-                          placeholder="seuemail@empresa.com.br"
+                          placeholder={t('diagnosis.contactEmailPlaceholder', 'name@company.com')}
                           className="w-full bg-[#070A17] border border-white/10 rounded-xl px-4 py-3 text-sm text-[#F3F1EA] placeholder-[#98A1BC]/50 focus:border-[#F6C453] focus:ring-1 focus:ring-[#F6C453] transition-all"
                           required
                         />
                         <span className="text-[10px] text-[#98A1BC] mt-1 block">
-                          Você receberá a cópia com o protocolo e retorno da análise.
+                          {t('diagnosis.contactEmailNotice', 'Você receberá a cópia com o protocolo e retorno da análise.')}
                         </span>
                       </div>
 
                       <div>
                         <label className="block text-xs font-heading font-bold uppercase tracking-wider text-[#F3F1EA] mb-2">
-                          WhatsApp / Telefone para Contato <span className="text-[#98A1BC] text-[10px] font-normal">(recomendado)</span>
+                          {t('diagnosis.contactPhone', 'WhatsApp / Telefone para Contato')}{' '}
+                          <span className="text-[#98A1BC] text-[10px] font-normal">({isEn ? 'recommended' : 'recomendado'})</span>
                         </label>
                         <input
                           type="tel"
                           value={formData.contactPhone || ''}
                           onChange={(e) => setFormData({ ...formData, contactPhone: e.target.value })}
-                          placeholder="(71) 99999-9999"
+                          placeholder={t('diagnosis.contactPhonePlaceholder', '+1 (555) 000-0000')}
                           className="w-full bg-[#070A17] border border-white/10 rounded-xl px-4 py-3 text-sm text-[#F3F1EA] placeholder-[#98A1BC]/50 focus:border-[#F6C453] focus:ring-1 focus:ring-[#F6C453] transition-all"
                         />
                         <span className="text-[10px] text-[#98A1BC] mt-1 block">
-                          Para contato ágil da diretoria estratégica.
+                          {t('diagnosis.contactPhoneNotice', 'Para contato ágil da diretoria estratégica.')}
                         </span>
                       </div>
                     </div>
 
-                    {/* LGPD Consent */}
+                    {/* LGPD / Privacy Consent */}
                     <div className="pt-2">
                       <label className="flex items-start gap-3 cursor-pointer select-none">
                         <input
@@ -784,7 +880,10 @@ export const DiagnosticoView: React.FC = () => {
                           className="mt-0.5 w-4 h-4 rounded border-white/20 bg-[#070A17] text-[#19D3F3] focus:ring-[#19D3F3]"
                         />
                         <span className="text-xs text-[#98A1BC] leading-relaxed">
-                          Autorizo a Lumen a processar as informações para gerar este mini-briefing, encaminhar a cópia para meu e-mail e enviar recomendações estratégicas exclusivas (em total conformidade com a LGPD Lei 13.709/2018).
+                          {t(
+                            'diagnosis.lgpdConsent',
+                            'Autorizo a Lumen a processar as informações para gerar este mini-briefing, encaminhar a cópia para meu e-mail e enviar recomendações estratégicas exclusivas (em total conformidade com a LGPD Lei 13.709/2018).'
+                          )}
                         </span>
                       </label>
                     </div>
@@ -801,7 +900,7 @@ export const DiagnosticoView: React.FC = () => {
                       className="px-5 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-[#F3F1EA] font-semibold text-xs transition-all flex items-center gap-2 border border-white/10"
                     >
                       <ArrowLeft className="w-4 h-4" />
-                      <span>Voltar</span>
+                      <span>{t('diagnosis.btnBack', 'Voltar')}</span>
                     </button>
                   ) : (
                     <div />
@@ -813,7 +912,7 @@ export const DiagnosticoView: React.FC = () => {
                       onClick={handleNextStep}
                       className="px-7 py-3.5 rounded-xl bg-[#F6C453] hover:bg-[#e5b542] text-[#070A17] font-bold text-sm transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(246,196,83,0.3)] ml-auto"
                     >
-                      <span>Avançar</span>
+                      <span>{t('diagnosis.btnNext', 'Avançar')}</span>
                       <ArrowRight className="w-4 h-4" />
                     </button>
                   ) : (
@@ -825,12 +924,12 @@ export const DiagnosticoView: React.FC = () => {
                       {isLoading ? (
                         <>
                           <Loader2 className="w-4 h-4 animate-spin" />
-                          <span>Enviando Mini-Briefing...</span>
+                          <span>{t('diagnosis.submitting', 'Enviando Mini-Briefing...')}</span>
                         </>
                       ) : (
                         <>
                           <Send className="w-4 h-4" />
-                          <span>Enviar Mini-Briefing Estratégico</span>
+                          <span>{t('diagnosis.btnSubmit', 'Enviar Mini-Briefing Estratégico')}</span>
                         </>
                       )}
                     </button>

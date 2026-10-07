@@ -3,6 +3,7 @@ import { Product, ProductTier, TierLevel, INITIAL_CATALOG } from '../data/catalo
 import { Order, OrderStatus, DeliverableItem, CustomerData, PaymentData, ClientProfile, InteractionMessage } from '../types';
 import { SEED_ORDERS } from '../data/seedOrders';
 import { INITIAL_CLIENT_PROFILES } from '../data/seedClients';
+import { Language, getTranslation, formatCurrencyPrice } from '../i18n';
 
 export type AppView =
   | 'home'
@@ -26,12 +27,18 @@ interface LumenContextType {
   selectedTier: TierLevel;
   activeOrderId: string | null;
   currentUserEmail: string;
+  // i18n & Currency
+  language: Language;
+  setLanguage: (lang: Language, manual?: boolean) => void;
+  t: (key: string, fallback?: string) => string;
+  formatPrice: (priceBRL: number, priceUSD?: number) => string;
+  currency: 'BRL' | 'USD';
   // Navigation
   navigate: (view: AppView, params?: { slug?: string; tier?: TierLevel; orderId?: string }) => void;
   // Catalog actions
   getProduct: (slug: string) => Product | undefined;
   updateProduct: (updated: Product) => void;
-  updateTierPrice: (slug: string, level: TierLevel, newPrice: number) => void;
+  updateTierPrice: (slug: string, level: TierLevel, newPriceBRL: number, newPriceUSD?: number) => void;
   updateTierDays: (slug: string, level: TierLevel, newDays: number) => void;
   resetCatalog: () => void;
   // Order actions
@@ -66,13 +73,116 @@ const LumenContext = createContext<LumenContextType | undefined>(undefined);
 
 const CATALOG_STORAGE_KEY = 'lumen_catalog_v2';
 const ORDERS_STORAGE_KEY = 'lumen_orders_v2';
+const LANGUAGE_STORAGE_KEY = 'lumen_language';
+
+// Initial language detection
+const getInitialLanguage = (): Language => {
+  try {
+    const saved = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+    if (saved === 'pt' || saved === 'en') {
+      return saved;
+    }
+  } catch {}
+
+  // Fallback to browser language
+  if (typeof navigator !== 'undefined' && navigator.language) {
+    if (navigator.language.toLowerCase().startsWith('pt')) {
+      return 'pt';
+    }
+    return 'en';
+  }
+
+  return 'pt';
+};
 
 export const LumenProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // Language & i18n
+  const [language, setLanguageState] = useState<Language>(getInitialLanguage);
+
+  // Automatic geolocation detection via Netlify Functions or server /api/geo
+  useEffect(() => {
+    // Only detect if user has NOT made an explicit manual choice
+    try {
+      const explicitChoice = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+      if (explicitChoice === 'pt' || explicitChoice === 'en') {
+        return; // Manual choice always has priority
+      }
+    } catch {}
+
+    const detectGeo = async () => {
+      try {
+        let res = await fetch('/.netlify/functions/geo');
+        if (!res.ok) {
+          res = await fetch('/api/geo');
+        }
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.country) {
+            const detectedLang: Language = data.country === 'BR' ? 'pt' : 'en';
+            setLanguageState(detectedLang);
+          }
+        }
+      } catch {
+        // Fallback to browser language already active
+      }
+    };
+
+    detectGeo();
+  }, []);
+
+  const setLanguage = (newLang: Language, manual: boolean = true) => {
+    setLanguageState(newLang);
+    if (manual) {
+      try {
+        localStorage.setItem(LANGUAGE_STORAGE_KEY, newLang);
+      } catch {}
+    }
+  };
+
+  const t = (key: string, fallback?: string): string => {
+    return getTranslation(language, key, fallback);
+  };
+
+  const formatPrice = (priceBRL: number, priceUSD?: number): string => {
+    return formatCurrencyPrice(language, priceBRL, priceUSD);
+  };
+
+  const currency: 'BRL' | 'USD' = language === 'en' ? 'USD' : 'BRL';
+
   // Load catalog
   const [products, setProducts] = useState<Product[]>(() => {
     try {
       const saved = localStorage.getItem(CATALOG_STORAGE_KEY);
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed: Product[] = JSON.parse(saved);
+        return parsed.map((p) => {
+          const initP = INITIAL_CATALOG.find((ip) => ip.slug === p.slug);
+          if (!initP) return p;
+          const updatedTiers: any = { ...p.tiers };
+          for (const lvl of ['essencial', 'pro', 'premium'] as TierLevel[]) {
+            if (updatedTiers[lvl]) {
+              const initTier = initP.tiers[lvl];
+              if (typeof updatedTiers[lvl].priceUSD !== 'number' && initTier) {
+                updatedTiers[lvl].priceUSD = initTier.priceUSD;
+              }
+              if (!updatedTiers[lvl].summaryEn && initTier) {
+                updatedTiers[lvl].nameEn = initTier.nameEn;
+                updatedTiers[lvl].summaryEn = initTier.summaryEn;
+                updatedTiers[lvl].deliverablesEn = initTier.deliverablesEn;
+                updatedTiers[lvl].notIncludedEn = initTier.notIncludedEn;
+              }
+            }
+          }
+          return {
+            ...p,
+            titleEn: p.titleEn || initP.titleEn,
+            shortDescriptionEn: p.shortDescriptionEn || initP.shortDescriptionEn,
+            fullDescriptionEn: p.fullDescriptionEn || initP.fullDescriptionEn,
+            badgeEn: p.badgeEn || initP.badgeEn,
+            tiers: updatedTiers,
+          };
+        });
+      }
     } catch (e) {
       console.error('Failed to parse catalog from storage', e);
     }
@@ -133,17 +243,19 @@ export const LumenProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setProducts((prev) => prev.map((p) => (p.slug === updated.slug ? updated : p)));
   };
 
-  const updateTierPrice = (slug: string, level: TierLevel, newPrice: number) => {
+  const updateTierPrice = (slug: string, level: TierLevel, newPriceBRL: number, newPriceUSD?: number) => {
     setProducts((prev) =>
       prev.map((p) => {
         if (p.slug !== slug) return p;
+        const currentTier = p.tiers[level];
         return {
           ...p,
           tiers: {
             ...p.tiers,
             [level]: {
-              ...p.tiers[level],
-              price: Number(newPrice),
+              ...currentTier,
+              price: Number(newPriceBRL),
+              priceUSD: typeof newPriceUSD === 'number' ? Number(newPriceUSD) : currentTier.priceUSD,
             },
           },
         };
@@ -458,6 +570,12 @@ export const LumenProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         selectedTier,
         activeOrderId,
         currentUserEmail,
+        // i18n
+        language,
+        setLanguage,
+        t,
+        formatPrice,
+        currency,
         navigate,
         getProduct,
         updateProduct,
